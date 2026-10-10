@@ -305,7 +305,7 @@ export default function PhiTar() {
           </button>
           {streamProgress&&<small role="status">{streamProgress}</small>}
           <small>No SHA-256 receipt yet. Large TAR output cannot yet be reopened or extracted within PhiTar's 75 MiB inspection limit. Use a system TAR tool for that. No compression, encryption, signing or upload.</small>
-        </div>
+        </div>}
         <p className="phitar-fine">ZIP supports Unicode paths. TAR uses POSIX USTAR ASCII path limits. Maximum 1000 files / 75 MB input.</p>
         {createdReceipt&&<div className="phitar-receipt" aria-label="Last created archive SHA-256 receipt">
           <strong><Fingerprint size={15}/> Last created archive checksum</strong>
