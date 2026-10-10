@@ -67,3 +67,12 @@
 .phitar-hash-mismatch{color:#ffb7ac}
 @media(min-width:851px){.phitar-verify{grid-column:1/-1}}
 @media(max-width:850px){.phitar-verify-fields{grid-template-columns:1fr}.phitar-verify-run{width:100%}}
+
+
+/* v0.6 native large TAR streaming (not available from the browser Pages app). */
+.phitar-large-tar{border:1px solid #56827b;border-radius:11px;background:linear-gradient(135deg,#0e2a2b,#101c28);padding:16px;margin-top:15px}
+.phitar-large-tar>strong{display:block;color:#a2f4df;font-size:13px;margin-bottom:9px}
+.phitar-large-tar p{color:#abc2c7;font-size:12px;line-height:1.65;margin:8px 0 14px}
+.phitar-large-tar button{display:flex;justify-content:center;align-items:center;gap:9px;background:#65d4b3;color:#102820;border:0;border-radius:8px;padding:11px 14px;font-size:12px;font-weight:900;width:100%;cursor:pointer}
+.phitar-large-tar button:disabled{opacity:.5;cursor:default}
+.phitar-large-tar small{display:block;color:#9eafb9;line-height:1.65;font-size:10px;margin-top:10px;overflow-wrap:anywhere}
