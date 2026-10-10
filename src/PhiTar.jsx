@@ -6,7 +6,7 @@ import {
   collectArchiveFiles, createTar, inspectTar, gzipBytes, gunzipBytes,
   prettySize, safeArchivePath,
 } from './phitar.js';
-import {hasNativeArchiveDialog, pickNativeArchive, pickNativeFolderFiles, makeLargeNativeTar, saveNativeArchive, extractNativeArchive} from './phitar-native.js';
+import {hasNativeArchiveDialog, pickNativeArchive, pickNativeFolderFiles, makeLargeNativeTar, inspectLargeNativeTar, extractLargeNativeTar, saveNativeArchive, extractNativeArchive} from './phitar-native.js';
 import {sha256File, compareSha256, createArchiveReceipt, receiptJson, MAX_HASH_BYTES} from './phitar-integrity.js';
 
 async function download(blob, filename) {
@@ -100,6 +100,9 @@ export default function PhiTar() {
   const [verifyBusy,setVerifyBusy] = useState(false);
   const [streaming,setStreaming] = useState(false);
   const [streamProgress,setStreamProgress] = useState('');
+  const [largeInspection,setLargeInspection] = useState(null);
+  const [largeBusy,setLargeBusy] = useState(false);
+  const [largeProgress,setLargeProgress] = useState('');
   const [verifyError,setVerifyError] = useState('');
   const [verifyStatus,setVerifyStatus] = useState('');
   const verifyInput = useRef(null);
@@ -124,6 +127,30 @@ export default function PhiTar() {
     } catch(e) {
       setError(e.message||'Could not load the selected directory.');
     } finally {setBusy(false);}
+  }
+  async function inspectLargeArchive() {
+    setLargeBusy(true);setError('');setNotice('');setLargeProgress('Scanning TAR headers…');
+    setLargeInspection(null);
+    try{
+      const found=await inspectLargeNativeTar();
+      if(!found){setLargeProgress('Selection canceled.');return;}
+      setLargeInspection(found);
+      setLargeProgress('Validated '+found.plan.entries.length+' regular files without loading file payloads.');
+    }catch(e){setError(e.message||'Could not inspect large TAR.');setLargeProgress('Inspection failed.');}
+    finally{setLargeBusy(false);}
+  }
+  async function extractLargeArchive() {
+    if(!largeInspection)return;
+    setLargeBusy(true);setError('');setNotice('');setLargeProgress('Rechecking TAR and requesting output directory…');
+    try{
+      const result=await extractLargeNativeTar(largeInspection,{progress:p=>{
+        setLargeProgress('Extracted '+p.files+' of '+p.totalFiles+' files.');
+      }});
+      if(!result.saved){setLargeProgress('Extraction canceled. No files written.');return;}
+      setNotice('Extracted '+result.files+' large TAR files into '+result.directory);
+      setLargeProgress('Extraction completed. Check source hashes separately.');
+    }catch(e){setError(e.message||'Large TAR extraction failed.');setLargeProgress('Extraction failed. Check for partial output.');}
+    finally{setLargeBusy(false);}
   }
   async function createLargeNativeTar() {
     setStreaming(true);setError('');setNotice('');setStreamProgress('Choose a source folder to scan.');
@@ -258,7 +285,7 @@ export default function PhiTar() {
   const total = files.reduce((sum,f)=>sum+f.file.size,0);
   return <section className="phitar-section" id="phitar" aria-label="PhiTar archive lab">
     <div className="phitar-header">
-      <div><span className="mini-label"><Archive size={15}/> PHITAR / ARCHIVE LAB • v0.6</span>
+      <div><span className="mini-label"><Archive size={15}/> PHITAR / ARCHIVE LAB • v0.7</span>
         <h2>Compress with a little <span>Phi.</span></h2>
         <p>Create and open genuine ZIP, TAR and TAR.GZ archives. No installers, backend, or code execution involved.</p>
       </div>
@@ -300,11 +327,29 @@ export default function PhiTar() {
         {native&&<div className="phitar-large-tar">
           <strong>Large TAR studio • Native preview</strong>
           <p>Stream a selected folder into an uncompressed TAR with 64 KiB buffers. Up to 2 GiB input and 1,000 files. Save outside the source folder. ZIP and TAR.GZ keep their existing 75 MiB limit.</p>
-          <button type="button" disabled={busy||streaming} onClick={createLargeNativeTar}>
+          <button type="button" disabled={busy||streaming||largeBusy} onClick={createLargeNativeTar}>
             <FolderOpen size={17}/>{streaming?'Streaming large TAR…':'STREAM LARGE FOLDER TO TAR'}
           </button>
           {streamProgress&&<small role="status">{streamProgress}</small>}
           <small>No SHA-256 receipt yet. Large TAR output cannot yet be reopened or extracted within PhiTar's 75 MiB inspection limit. Use a system TAR tool for that. No compression, encryption, signing or upload.</small>
+        </div>}
+
+        {native&&<div className="phitar-large-tar">
+          <strong>Large TAR reader • Native preview</strong>
+          <p>Inspect an uncompressed TAR up to 2 GiB without loading its contents into memory. Then choose a destination to extract into a fresh directory. Only POSIX USTAR regular files are supported.</p>
+          <button type="button" disabled={busy||streaming||largeBusy} onClick={inspectLargeArchive}>
+            <FileArchive size={17}/>{largeBusy?'Processing…':'INSPECT LARGE TAR'}
+          </button>
+          {largeInspection&&<div className="phitar-manifest">
+            <b>{largeInspection.filename} • {largeInspection.plan.entries.length} files • {prettySize(largeInspection.plan.dataBytes)}</b>
+            <div>{largeInspection.plan.entries.slice(0,7).map(item=><span key={item.path}>{item.path} ({prettySize(item.size)})</span>)}
+            {largeInspection.plan.entries.length>7&&<small>+{largeInspection.plan.entries.length-7} more</small>}</div>
+            <button type="button" disabled={busy||streaming||largeBusy} onClick={extractLargeArchive}>
+              <FolderOpen size={17}/>EXTRACT INTO NEW FOLDER
+            </button>
+          </div>}
+          {largeProgress&&<small role="status">{largeProgress}</small>}
+          <small>Existing files are not overwritten. Failed extractions may leave a partial folder. TAR checksum checks headers only, not file contents. No PAX/GNU, symlinks, compression or automatic upload.</small>
         </div>}
         <p className="phitar-fine">ZIP supports Unicode paths. TAR uses POSIX USTAR ASCII path limits. Maximum 1000 files / 75 MB input.</p>
         {createdReceipt&&<div className="phitar-receipt" aria-label="Last created archive SHA-256 receipt">
