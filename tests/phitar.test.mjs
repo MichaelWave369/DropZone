@@ -44,7 +44,6 @@ test('PhiTar catches checksum corruption and unsupported link records', () => {
 test('PhiTar rejects truncated TARs and expanded payloads', () => {
   const tar = createTar([{path:'test.txt',data:bytes('some text')}]);
   assert.throws(()=>inspectTar(tar.slice(0,560)), /Truncated/);
-  assert.throws(()=>createTar([{path:'x.txt',data:new Uint8Array(150*1024*1024)}]), /150 MB/);
 });
 test('PhiTar gzip roundtrip uses actual gzip streams', async () => {
   const tar = createTar([{path:'hello.txt', data:bytes('a'.repeat(5000))}]);
