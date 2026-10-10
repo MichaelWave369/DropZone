@@ -2,7 +2,7 @@
 
 **Source in. Build kit out. Archive in. PhiTar out.** A browser-first React/Vite app that turns **trusted** source projects into cross-platform build recipes and project wrappers. Formerly the AppForge 369 prototype, now merged with selected ideas from Claude’s App Packager (provided separately). Now incorporates selected ideas from a user-supplied Grok Forgepack workspace, while retaining our AppForge/Claude architecture. MIT licensed.
 
-**Status:** v0.3 tri-AI merged prototype. This is **not a cloud compilation service**. Clicking **EXPORT BUILD KIT** downloads a ZIP containing your source, a selected-platform project wrapper, and GitHub Actions workflows. Finished native installers only appear when the workflows actually compile successfully on GitHub runners or a suitable local machine. The generated workflows remain best-effort; platform build results must be verified individually. A first native Windows smoke workflow is available for testing.
+**Status:** v0.4 tri-AI merged prototype with PhiTar and Parallax handoff staging. This is **not a cloud compilation service**. Clicking **EXPORT BUILD KIT** downloads a ZIP containing your source, a selected-platform project wrapper, and GitHub Actions workflows. Finished native installers only appear when the workflows actually compile successfully on GitHub runners or a suitable local machine. The generated workflows remain best-effort; platform build results must be verified individually. A first native Windows smoke workflow is available for testing.
 
 ## PhiTar archive workshop
 
@@ -11,6 +11,14 @@
 **Boundaries:** 1000 files, 75 MB input, 150 MB expanded output; file data is handled in memory. TAR v1 creates/reads POSIX USTAR with portable ASCII names, not PAX/GNU extended headers. ZIP supports Unicode filenames. No encryption, archive splitting, 7z or RAR support yet. RAR compression is proprietary and not a claim made by this project. Treat imported archives as untrusted data; no source code is executed during archive inspection.
 
 See [PhiTar engineering notes](docs/PHITAR.md). Tests run with `npm test`.
+
+## Parallax Relay handoff (v0.4)
+
+A new **Relay handoff** section stages the most recently exported Drop Zone ZIP, or a user-selected archive, for manual transfer through **Parallax Relay 369**. It computes a **real SHA-256 digest** locally, provides a downloadable JSON receipt and copyable handoff note, and opens the existing Netlify Relay in a separate tab. Nothing is uploaded by Drop Zone.
+
+The recipient can download the file using Relay's authenticated interface and bring it back to Drop Zone or PhiTar. The current relay repository's `recipient` value is **not** enforced as a private access-control boundary; only send artifacts suitable for the trusted collaborator group.
+
+**This is not one-click file transfer yet.** See [Parallax Relay bridge and security design](docs/PARALLAX_RELAY_BRIDGE.md) before enabling cross-origin uploads.
 
 ## Local development
 
