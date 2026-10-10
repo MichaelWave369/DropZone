@@ -6,7 +6,7 @@ import {
   collectArchiveFiles, createTar, inspectTar, gzipBytes, gunzipBytes,
   prettySize, safeArchivePath,
 } from './phitar.js';
-import {hasNativeArchiveDialog, pickNativeArchive, saveNativeArchive, extractNativeArchive} from './phitar-native.js';
+import {hasNativeArchiveDialog, pickNativeArchive, pickNativeFolderFiles, saveNativeArchive, extractNativeArchive} from './phitar-native.js';
 import {sha256File, compareSha256, createArchiveReceipt, receiptJson, MAX_HASH_BYTES} from './phitar-integrity.js';
 
 async function download(blob, filename) {
@@ -111,6 +111,18 @@ export default function PhiTar() {
     } catch (e) { setError(e.message);setFiles([]); }
   }
 
+  async function chooseNativeFolder() {
+    setBusy(true);setError('');setNotice('');setCreatedReceipt(null);
+    try {
+      const result = await pickNativeFolderFiles();
+      if (!result) {setNotice('Folder selection canceled.');return;}
+      handleFiles(result.entries);
+      setName(cleanName(result.filename));
+      setNotice('Imported ' + result.fileCount + ' files (' + prettySize(result.totalBytes) + ') using the system folder picker.');
+    } catch(e) {
+      setError(e.message||'Could not load the selected directory.');
+    } finally {setBusy(false);}
+  }
   async function create() {
     setBusy(true);setError('');setNotice('');setCreatedReceipt(null);
     try {
@@ -228,7 +240,7 @@ export default function PhiTar() {
   const total = files.reduce((sum,f)=>sum+f.file.size,0);
   return <section className="phitar-section" id="phitar" aria-label="PhiTar archive lab">
     <div className="phitar-header">
-      <div><span className="mini-label"><Archive size={15}/> PHITAR / ARCHIVE LAB • v0.4</span>
+      <div><span className="mini-label"><Archive size={15}/> PHITAR / ARCHIVE LAB • v0.5</span>
         <h2>Compress with a little <span>Phi.</span></h2>
         <p>Create and open genuine ZIP, TAR and TAR.GZ archives. No installers, backend, or code execution involved.</p>
       </div>
@@ -245,7 +257,7 @@ export default function PhiTar() {
         </div>
         <div className="phitar-controls">
           <button type="button" onClick={()=>fileInput.current?.click()}><FileArchive size={16}/> Select files</button>
-          <button type="button" onClick={()=>folderInput.current?.click()}><FolderOpen size={16}/> Select folder</button>
+          <button type="button" disabled={busy} onClick={()=>native?chooseNativeFolder():folderInput.current?.click()}><FolderOpen size={16}/> {native?'Select system folder':'Select folder'}</button>
           <input hidden ref={fileInput} type="file" multiple onChange={e=>{handleFiles(e.target.files);e.target.value='';}}/>
           <input hidden ref={folderInput} type="file" multiple webkitdirectory="" onChange={e=>{handleFiles(e.target.files);e.target.value='';}}/>
         </div>
@@ -266,7 +278,7 @@ export default function PhiTar() {
         <button className="phitar-primary" type="button" disabled={busy||!files.length} onClick={create}>
           <ArrowDownToLine size={17}/> {busy?'Processing…':'CREATE ARCHIVE'}
         </button>
-        {native&&<p className="phitar-fine">Desktop mode: saving opens your system file picker. Files are written only to the destination you choose.</p>}
+        {native&&<p className="phitar-fine">Desktop mode: saving opens your system file picker. Folder imports use a recursive system picker and reject symlinks, unsafe paths and excess file sizes before loading data.</p>}
         <p className="phitar-fine">ZIP supports Unicode paths. TAR uses POSIX USTAR ASCII path limits. Maximum 1000 files / 75 MB input.</p>
         {createdReceipt&&<div className="phitar-receipt" aria-label="Last created archive SHA-256 receipt">
           <strong><Fingerprint size={15}/> Last created archive checksum</strong>
