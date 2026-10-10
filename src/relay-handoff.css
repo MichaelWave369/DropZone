@@ -1,0 +1,42 @@
+/* Parallax Relay handoff: distinct from app packaging and PhiTar archives. */
+.relay-section{margin:72px 0 66px;scroll-margin-top:105px}
+.relay-heading{max-width:870px;margin-bottom:24px}
+.relay-kicker{display:flex;align-items:center;gap:9px;color:#88edd0;font-size:10px;letter-spacing:1.9px;font-weight:900}
+.relay-heading h2{margin:11px 0 12px;font-size:clamp(32px,4vw,54px);letter-spacing:-1.5px}
+.relay-heading h2 span{color:#ffbd48}
+.relay-heading p{font-size:14px;color:#98aec4;max-width:760px;line-height:1.7}
+.relay-grid{display:grid;grid-template-columns:1fr 1fr;gap:19px}
+.relay-panel{background:linear-gradient(150deg,#152333,#101621);border:1px solid #3b536d;border-radius:17px;padding:24px;min-width:0}
+.relay-panel h3{display:flex;align-items:center;gap:10px;margin:0 0 20px;font-size:17px}
+.relay-panel h3 svg{color:#93f4d8}
+.relay-selected{display:flex;align-items:center;gap:10px;font-weight:850;font-size:13px;overflow-wrap:anywhere;color:#b5f8df}
+.relay-selected svg{flex:none}
+.relay-selected small{font-weight:500;color:#9daabe}
+.relay-muted{font-size:11px;color:#8da3b8;line-height:1.7}
+.relay-pick{display:inline-flex;gap:9px;align-items:center;border:1px solid #4c816f;background:#15342b;padding:11px 14px;border-radius:9px;font-size:12px;font-weight:800;color:#bef6df;cursor:pointer;margin:7px 0}
+.relay-pick input{display:none}
+.relay-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.relay-fields label{font-size:9px;color:#a8bacf;font-weight:850;letter-spacing:1.1px}
+.relay-fields label:last-child{grid-column:1/-1}
+.relay-fields input{display:block;margin-top:7px;background:#0a121d;color:#eff4ff;border:1px solid #3c5771;border-radius:8px;padding:11px 12px;width:100%;font:600 12px system-ui}
+.relay-primary{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px 13px;border:0;border-radius:9px;background:linear-gradient(110deg,#80f1d5,#3bac92);color:#102820;cursor:pointer;font-weight:900;font-size:12px;letter-spacing:.4px}
+.relay-primary:disabled{opacity:.45;cursor:default}
+.relay-await{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:165px;color:#91cab9;border:1px dashed #3c665a;border-radius:12px;text-align:center;padding:19px;background:#0b151c}
+.relay-await strong{color:#dbe5f1;font-size:14px}
+.relay-await span{color:#8ca5ba;font-size:11px}
+.relay-ready{display:flex;align-items:center;gap:8px;color:#a1f7d4;font-weight:850;font-size:12px}
+.relay-digest{display:flex;flex-direction:column;gap:8px;background:#0a131b;border:1px solid #355b51;border-radius:10px;padding:13px;margin-bottom:13px}
+.relay-digest span{font-size:10px;letter-spacing:1.2px;font-weight:800;color:#96efd1}
+.relay-digest code{word-break:break-all;user-select:all;font:11px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;color:#cfe7e1}
+.relay-digest small{color:#91aabd;overflow-wrap:anywhere}
+.relay-actions{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:13px}
+.relay-actions button{display:flex;align-items:center;gap:7px;background:#1c3240;border:1px solid #456d79;color:#c1e4e7;border-radius:9px;padding:10px 12px;font-size:11px;font-weight:750;cursor:pointer}
+.relay-actions button:hover,.relay-open:hover{filter:brightness(1.12)}
+.relay-open{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 15px;border-radius:10px;background:#f3bc4a;color:#19160c;font-weight:900;text-decoration:none;font-size:12px;letter-spacing:.5px;margin:14px 0}
+.relay-open-muted{background:#222f3e;color:#b1cbd0;border:1px solid #3b5969}
+.relay-warning{display:flex;align-items:flex-start;gap:9px;color:#b2b9b0;background:#77551d16;border:1px solid #7e632f4d;border-radius:9px;padding:11px 13px;font-size:11px;line-height:1.65;margin:17px 0 0}
+.relay-warning svg{flex:none;margin-top:1px;color:#edc778}
+.relay-feedback{display:flex;align-items:center;gap:8px;margin-top:14px;padding:12px 14px;border:1px solid #386e58;background:#15392c;color:#b2f4d4;border-radius:9px;font-size:12px}
+.relay-error{border-color:#904d43;background:#351e22;color:#fbc8c3}
+@media(max-width:850px){.relay-grid{grid-template-columns:1fr}.relay-panel{padding:18px}}
+@media(max-width:520px){.relay-fields{grid-template-columns:1fr}}
