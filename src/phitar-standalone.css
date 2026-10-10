@@ -1,0 +1,27 @@
+/* Standalone PhiTar skin. Shares the same PhiTar.jsx archive component as Drop Zone. */
+.phitar-standalone {min-height:100vh;background:radial-gradient(ellipse 820px 500px at 85% 8%,#a86e211c,transparent),radial-gradient(ellipse 640px 520px at 5% 28%,#136d5022,transparent),#090e15;color:#f2f5fc}
+.phitar-app-topbar{min-height:84px;padding:16px clamp(20px,4.5vw,70px);border-bottom:1px solid #293346;display:flex;align-items:center;justify-content:space-between;gap:25px}
+.phitar-app-brand{display:flex;gap:13px;align-items:center;text-decoration:none;color:#f1f4fc;min-width:188px}
+.phitar-app-brand strong{font-size:25px;letter-spacing:-.8px;display:block}
+.phitar-app-brand small{font-size:8px;letter-spacing:1.2px;color:#a3b9c7;display:block}
+.phitar-app-mark{width:45px;height:45px;border-radius:12px;background:#e5a83926;display:flex;align-items:center;justify-content:center;color:#f5c253;border:1px solid #eeb24872}
+.phitar-app-topbar nav{display:flex;gap:23px;align-items:center}
+.phitar-app-topbar nav a{font-size:12px;color:#afbecc;text-decoration:none;display:inline-flex;align-items:center;gap:5px;font-weight:700}
+.phitar-app-topbar nav a:hover{color:#ffcc62}
+.phitar-app-version{border:1px solid #436450;color:#9ce0bf;background:#1830256e;padding:10px 14px;border-radius:8px;font-size:10px;font-weight:850;letter-spacing:1.2px;white-space:nowrap}
+.phitar-app-main{max-width:1310px;padding:0 clamp(20px,4.5vw,70px);margin:auto}
+.phitar-app-hero{padding:65px 0 5px;max-width:940px}
+.phitar-app-eyebrow{display:flex;gap:9px;align-items:center;color:#98ebcf;font-size:10px;letter-spacing:2px;font-weight:900}
+.phitar-app-hero h1{margin:16px 0 18px;font-size:clamp(55px,8vw,112px);letter-spacing:-.06em;line-height:1.05;font-weight:900}
+.phitar-app-hero h1 span{color:#f5bc49}
+.phitar-app-hero p{max-width:735px;line-height:1.8;color:#a9bdcc;font-size:16px}
+.phitar-app-pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+.phitar-app-pills span{display:inline-flex;align-items:center;gap:7px;border:1px solid #42576b;border-radius:50px;padding:8px 12px;color:#b4d9cb;background:#101a25;font-size:11px;font-weight:800}
+.phitar-standalone .phitar-section{margin:60px 0}
+.phitar-app-note{display:flex;gap:17px;padding:21px 22px;border:1px solid #355b51;border-radius:15px;background:#142b2759;scroll-margin-top:100px;margin:25px 0 65px}
+.phitar-app-note>svg{flex:none;color:#9befd1;margin-top:3px}
+.phitar-app-note strong{color:#c8f8df;font-size:14px}
+.phitar-app-note p{color:#a0b6bc;line-height:1.7;font-size:12px;margin:8px 0 0}
+.phitar-app-footer{display:flex;justify-content:space-between;gap:15px;padding:23px clamp(20px,4.5vw,70px);border-top:1px solid #293346;color:#8498ac;letter-spacing:1.1px;font-size:10px;font-weight:800}
+@media(max-width:1100px){.phitar-app-topbar nav{gap:14px}.phitar-app-version{display:none}}
+@media(max-width:730px){.phitar-app-topbar{align-items:flex-start;flex-wrap:wrap}.phitar-app-topbar nav{gap:12px;flex-wrap:wrap}.phitar-app-hero{padding-top:45px}.phitar-app-footer{flex-wrap:wrap}.phitar-app-hero p{font-size:14px}}
