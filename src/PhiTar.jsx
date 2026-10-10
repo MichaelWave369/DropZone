@@ -6,9 +6,11 @@ import {
   collectArchiveFiles, createTar, inspectTar, gzipBytes, gunzipBytes,
   prettySize, safeArchivePath,
 } from './phitar.js';
+import {hasNativeArchiveDialog, pickNativeArchive, saveNativeArchive, extractNativeArchive} from './phitar-native.js';
 import {sha256File, compareSha256, createArchiveReceipt, receiptJson, MAX_HASH_BYTES} from './phitar-integrity.js';
 
-function download(blob, filename) {
+async function download(blob, filename) {
+  if (hasNativeArchiveDialog()) return saveNativeArchive(blob, filename);
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -17,6 +19,7 @@ function download(blob, filename) {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
+  return {saved:true,filename};
 }
 const cleanName = name => (name.trim().replace(/\.(?:tar\.gz|tgz|tar|zip)$/i, '').replace(/[^a-zA-Z0-9._-]+/g, '-') || 'phitar-archive').slice(0, 75);
 
@@ -89,6 +92,7 @@ export default function PhiTar() {
   const folderInput = useRef(null);
   const openInput = useRef(null);
   const [drag,setDrag] = useState(false);
+  const native = hasNativeArchiveDialog();
   const [createdReceipt,setCreatedReceipt] = useState(null);
   const [verifyFile,setVerifyFile] = useState(null);
   const [expectedHash,setExpectedHash] = useState('');
@@ -130,7 +134,8 @@ export default function PhiTar() {
         extension = format === 'tgz' ? 'tar.gz' : 'tar';
       }
       const filename = base + '.' + extension;
-      download(output, filename);
+      const saved = await download(output, filename);
+      if (!saved.saved) {setNotice('Save canceled. Archive not written.');return;}
       setNotice('Created ' + filename + ' • ' + files.length + ' files • ' + prettySize(output.size));
       try {
         const receipt = await createArchiveReceipt(output, {filename, action:'created'});
@@ -143,6 +148,15 @@ export default function PhiTar() {
     finally { setBusy(false); }
   }
 
+  async function openNativeArchive() {
+    try {
+      setBusy(true);setError('');setNotice('');
+      const selected = await pickNativeArchive();
+      if (selected) await open(selected);
+      else setNotice('Open dialog canceled.');
+    } catch(e) {setError(e.message||'Native archive picker failed.');}
+    finally {setBusy(false);}
+  }
   async function open(file) {
     if (!file) return;
     setBusy(true);setError('');setNotice('');setOpened(null);setSource(file.name);
@@ -156,8 +170,15 @@ export default function PhiTar() {
   async function unpackFolder() {
     setBusy(true);setError('');setNotice('');
     try {
-      const count = await writeToChosenFolder(opened);
-      setNotice('Extracted ' + count + ' files into a new PhiTar folder.');
+      if (native) {
+        const result = await extractNativeArchive(opened);
+        setNotice(result.saved
+          ? 'Extracted ' + result.count + ' files into ' + result.directory
+          : 'Extraction canceled. No files written.');
+      } else {
+        const count = await writeToChosenFolder(opened);
+        setNotice('Extracted ' + count + ' files into a new PhiTar folder.');
+      }
     } catch (e) { setError(e.message || 'Folder extraction failed.'); }
     finally {setBusy(false);}
   }
@@ -167,14 +188,17 @@ export default function PhiTar() {
       const zip = new JSZip();
       for (const entry of opened) zip.file(entry.path, entry.data);
       const blob = await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
-      download(blob, cleanName(source || 'extracted') + '-contents.zip');
-      setNotice('Downloaded the checked archive contents as ZIP.');
+      const saved = await download(blob, cleanName(source || 'extracted') + '-contents.zip');
+      setNotice(saved.saved?'Saved the checked archive contents as ZIP.':'ZIP save canceled.');
     } catch (e) {setError(e.message || 'ZIP repack failed.');}
     finally {setBusy(false);}
   }
-  function downloadReceipt() {
+  async function downloadReceipt() {
     if (!createdReceipt) return;
-    download(new Blob([receiptJson(createdReceipt)],{type:'application/json'}),createdReceipt.filename+'.sha256.json');
+    try {
+      const saved = await download(new Blob([receiptJson(createdReceipt)],{type:'application/json'}),createdReceipt.filename+'.sha256.json');
+      setNotice(saved.saved?'Checksum receipt saved.':'Checksum receipt save canceled.');
+    } catch(e) {setError(e.message||'Could not save checksum receipt.');}
   }
   async function copyReceiptHash() {
     if (!createdReceipt) return;
@@ -241,6 +265,7 @@ export default function PhiTar() {
         <button className="phitar-primary" type="button" disabled={busy||!files.length} onClick={create}>
           <ArrowDownToLine size={17}/> {busy?'Processing…':'CREATE ARCHIVE'}
         </button>
+        {native&&<p className="phitar-fine">Desktop mode: saving opens your system file picker. Files are written only to the destination you choose.</p>}
         <p className="phitar-fine">ZIP supports Unicode paths. TAR uses POSIX USTAR ASCII path limits. Maximum 1000 files / 75 MB input.</p>
         {createdReceipt&&<div className="phitar-receipt" aria-label="Last created archive SHA-256 receipt">
           <strong><Fingerprint size={15}/> Last created archive checksum</strong>
@@ -258,18 +283,21 @@ export default function PhiTar() {
           <PackageOpen size={30}/>
           <strong>Inspect an archive before extracting</strong>
           <span>Supports .zip, .tar, .tar.gz and .tgz</span>
-          <button type="button" onClick={()=>openInput.current?.click()} disabled={busy}>Choose archive</button>
+          <button type="button" onClick={()=>native?openNativeArchive():openInput.current?.click()} disabled={busy}>
+            {native?'Open using system file picker':'Choose archive'}
+          </button>
           <input hidden ref={openInput} type="file" accept=".zip,.tar,.gz,.tgz" onChange={e=>{open(e.target.files?.[0]);e.target.value='';}}/>
         </div>
         {opened&&<div className="phitar-manifest">
           <b>{source} • {opened.length} verified regular files</b>
           <div>{opened.slice(0,8).map(e=><span key={e.path}>{e.path} ({prettySize(e.data.length)})</span>)}{opened.length>8&&<small>+{opened.length-8} more</small>}</div>
           <div className="phitar-actionrow">
-            {typeof window.showDirectoryPicker==='function'&&
+            {(native||typeof window.showDirectoryPicker==='function')&&
               <button disabled={busy} onClick={unpackFolder}><FolderOpen size={15}/> Extract into new folder</button>}
             <button disabled={busy} onClick={repackZip}><ArrowDownToLine size={15}/> Download contents as ZIP</button>
           </div>
         </div>}
+        {native&&<p className="phitar-fine">Native extraction uses your system folder picker and creates a new destination folder; existing files are not overwritten.</p>}
         <div className="phitar-compat"><strong>Coming later</strong><p>7z and RAR read support. RAR creation is not in v0.1; it requires separate proprietary-format tooling.</p></div>
       </div>
     </div>
