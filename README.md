@@ -4,6 +4,14 @@
 
 **Status:** v0.4 tri-AI merged prototype with PhiTar and Parallax handoff staging. This is **not a cloud compilation service**. Clicking **EXPORT BUILD KIT** downloads a ZIP containing your source, a selected-platform project wrapper, and GitHub Actions workflows. Finished native installers only appear when the workflows actually compile successfully on GitHub runners or a suitable local machine. The generated workflows remain best-effort; platform build results must be verified individually. A first native Windows smoke workflow is available for testing.
 
+## PhiTar v0.4: native desktop file dialogs
+
+The *self-packaged PhiTar desktop application* now includes official Tauri 2 dialog and file-system plugins to open archives, select extraction directories and save archives using operating-system dialogs. The **browser** version continues to use standard file inputs, downloads, and File System Access API where available.
+
+Native extraction only starts after the user chooses a folder and creates a fresh `phitar-extracted-*` directory. It refuses traversal, duplicate paths, unsafe Windows filenames and over-limit archives; it never knowingly overwrites existing files. Native permissions grant the specific open/read/stat/save/write/mkdir commands, with **no permanent or blanket filesystem scope**. Picker-selected paths are allowed for that app session only.
+
+This v0.4 change patches **PhiTar's own self-generated Tauri kit**, not Drop Zone's generic exporters. See [Native file dialogs and permissions](docs/PHITAR_NATIVE_FILES.md) for security boundaries and manual testing requirements.
+
 ## PhiTar v0.3 integrity receipts
 
 PhiTar generates a **SHA-256 integrity receipt** after creating an archive. This receipt contains the exact archive filename, byte size, hash, local timestamp, schema version, and an explicit integrity-only statement. A downloadable `.sha256.json` receipt and copyable checksum are available in the Archive Lab.
