@@ -79,7 +79,7 @@ test('scanner detects corrupted checksum, unsupported links and truncated end ma
   const bad=base.slice();bad[20]^=1;
   await assert.rejects(inspectStreamingTar(sourceFor(bad)),/checksum/);
   const missingEnd=base.slice(0,base.length-512);
-  await assert.rejects(inspectStreamingTar(sourceFor(missingEnd)),/missing end marker|truncated/i);
+  await assert.rejects(inspectStreamingTar(sourceFor(missingEnd)),/missing (?:its )?end marker|truncated/i);
   const type=base.slice();type[156]=50;
   await assert.rejects(inspectStreamingTar(sourceFor(type)),/checksum|links/);
 });
