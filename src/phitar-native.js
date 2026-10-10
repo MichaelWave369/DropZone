@@ -72,6 +72,8 @@ export async function extractNativeArchive(entries) {
   const paths=new Set();
   const files = entries.map(entry => {
     const path=safeArchivePath(entry.path);
+    // Validate all native names before showing a dialog or writing any file.
+    nativeJoin('/phitar-validation',path);
     if (!(entry.data instanceof Uint8Array)) throw new Error('Extraction requires validated Uint8Array content.');
     if (paths.has(path.toLowerCase())) throw new Error('Duplicate archive path: ' + path);
     paths.add(path.toLowerCase());
