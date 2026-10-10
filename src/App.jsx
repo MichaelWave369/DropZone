@@ -4,6 +4,7 @@ import { ArrowDownToLine, ArrowRight, Archive, Box, Check, CheckCircle2, Chevron
 import { buildKit, inspectFile, TARGETS, productName, slugify, validVersion, validAppId } from './engine.js';
 import {droppedToFile, folderFilesToArchive, detectChoices, safeHtmlPreview} from './grok-bridge.js';
 import {SAMPLES} from './samples.js';
+import PhiTar from './PhiTar.jsx';
 
 const ICONS = {windows:<MonitorDown/>, linux:<Code2/>, macos:<Box/>, android:<Smartphone/>, ios:<SmartphoneCharging/>, pwa:<Globe2/>};
 const TYPES = { static:['STATIC WEB','HTML / CSS / JS'], vite:['REACT / VITE','Frontend source project'], cra:['CREATE REACT APP','Legacy React build'], generic:['NODE WEB','Static output adapter'], python:['PYTHON','Desktop executable script'], unsupported:['UNSUPPORTED','Needs an adapter'] };
@@ -122,7 +123,7 @@ export default function App() {
   return <div className="app-shell dropzone-theme">
     <header className="topbar">
       <div className="brand"><div className="brand-mark"><Package size={23} strokeWidth={2.5}/></div><div><span className="brand-title">THE <b>DROP ZONE</b></span><span className="brand-sub">CROSS-PLATFORM PACKAGING LAB</span></div></div>
-      <div className="topnav"><a href="#workspace">Drop station</a><a href="#how">Pipeline</a><a href="#limits">Reality check</a></div>
+      <div className="topnav"><a href="#workspace">Drop station</a><a href="#phitar">PhiTar archives</a><a href="#how">Pipeline</a><a href="#limits">Reality check</a></div>
       <div className="version"><span className="green-dot"/> BROWSER FIRST <b>v0.3</b></div>
     </header>
     <main>
@@ -174,9 +175,10 @@ export default function App() {
           {preview&&<div className="side-note"><div><Eye size={18}/><strong>Generated CI workflow preview</strong></div><button className="preview-toggle" onClick={()=>setPreviewVisible(!previewVisible)}>{previewVisible?'Hide workflow':'View YAML'} <ArrowRight size={14}/></button>{previewVisible&&<pre className="preview-yaml">{preview}</pre>}</div>}
         </aside>
       </section>
+      <PhiTar />
       <section id="how" className="info-section"><div className="info-head"><span className="mini-label">THE PIPELINE</span><h2>Source in. Build kit out.</h2></div><div className="info-grid"><article><div className="info-num">1</div><FolderOpen size={28}/><h3>Inspect</h3><p>Recognize static websites, React/Vite, Create React App, basic Node web builds, and Python desktop scripts.</p></article><article><div className="info-num">2</div><Cpu size={28}/><h3>Wrap</h3><p>Use Tauri for desktop, Capacitor for Android/iOS, PWA for installable websites, and PyInstaller for Python.</p></article><article><div className="info-num">3</div><Rocket size={28}/><h3>Compile</h3><p>Push the generated project to GitHub, run a trusted manual workflow, and download the resulting artifacts.</p></article></div></section>
       <section id="limits" className="bottom-strip"><CircleAlert size={18}/><p><strong>Packaging is not magic:</strong> Mobile builds produce an Android debug APK and an unsigned iOS Xcode project. Desktop installers are unsigned. Signing, notarization, native plugins, and server-dependent apps need additional work.</p></section>
     </main>
-    <footer><div className="brand footer-brand"><div className="brand-mark small-mark"><Package size={15}/></div><span>THE DROP ZONE</span></div><span>ONE PROJECT. MANY RUNWAYS.</span><span>GROK + CLAUDE + APPFORGE · v0.3</span></footer>
+    <footer><div className="brand footer-brand"><div className="brand-mark small-mark"><Package size={15}/></div><span>THE DROP ZONE</span></div><span>ONE PROJECT. MANY RUNWAYS.</span><span>GROK + CLAUDE + APPFORGE · PHITAR v0.1</span></footer>
   </div>;
 }

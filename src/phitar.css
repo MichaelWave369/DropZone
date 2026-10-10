@@ -1,0 +1,42 @@
+/* PhiTar archive workshop inside The Drop Zone. Self-contained selectors. */
+.phitar-section{margin:72px 0 64px;scroll-margin-top:105px}
+.phitar-header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:25px}
+.phitar-header .mini-label{display:flex;align-items:center;gap:8px;color:#ffd064;font-size:10px;letter-spacing:2.2px;font-weight:850}
+.phitar-header h2{font-size:clamp(34px,4vw,54px);letter-spacing:-1.8px;line-height:1.08;margin:11px 0 14px}
+.phitar-header h2 span{color:#ffbf46}
+.phitar-header p{max-width:700px;color:#a0b2c7;line-height:1.7;font-size:14px;margin:0}
+.phitar-status{display:flex;align-items:center;gap:8px;color:#a4ead4;background:#1030236b;border:1px solid #315c4a;padding:11px 14px;border-radius:10px;white-space:nowrap;font-size:10px;letter-spacing:1.5px;font-weight:900}
+.phitar-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.phitar-card{border:1px solid #35465e;background:linear-gradient(155deg,#17212f,#0e1520);border-radius:18px;padding:24px;min-width:0}
+.phitar-card-title{display:flex;align-items:center;gap:11px;margin-bottom:22px}
+.phitar-card-title h3{font-size:20px;margin:0;letter-spacing:-.35px}
+.phitar-number{color:#ffbf46;border:1px solid #6d5427;background:#f1ad251b;border-radius:10px;padding:7px 10px;font-size:13px;font-weight:900}
+.phitar-drop,.phitar-open{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;text-align:center;min-height:160px;padding:24px;background:#090f19;border:1px dashed #c58c35;border-radius:13px;color:#ffd16a}
+.phitar-drop.dragging{background:#fbbd301a;border-color:#ffca62}
+.phitar-drop strong,.phitar-open strong{font-size:15px;color:#f7f9fc}
+.phitar-drop span,.phitar-open span{font-size:11px;color:#94a6bd}
+.phitar-open{min-height:230px;border-color:#48667f;color:#b7f0dd}
+.phitar-open button{background:#163c33;border:1px solid #377965;border-radius:8px;color:#c2fae4;font-weight:800;padding:9px 17px;margin-top:10px;cursor:pointer}
+.phitar-controls,.phitar-actionrow{display:flex;flex-wrap:wrap;gap:10px;margin:15px 0 19px}
+.phitar-controls button,.phitar-actionrow button{display:flex;align-items:center;justify-content:center;gap:9px;padding:10px 14px;color:#c8d9eb;background:#1a293a;border:1px solid #466079;border-radius:9px;font-weight:750;font-size:12px;cursor:pointer}
+.phitar-controls button:hover,.phitar-actionrow button:hover,.phitar-open button:hover{filter:brightness(1.2)}
+.phitar-label{display:block;color:#a7b8d0;font-size:10px;letter-spacing:1.3px;font-weight:850;margin:14px 0}
+.phitar-label input,.phitar-label select{display:block;margin-top:9px;border:1px solid #40516e;background:#080e1b;border-radius:9px;color:#eff5ff;min-width:0;width:100%;padding:11px 13px;font:inherit;font-size:13px;letter-spacing:0;font-weight:600}
+.phitar-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.phitar-fields select:disabled{opacity:.4}
+.phitar-primary{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px 16px;background:linear-gradient(120deg,#ffd066,#eba52e);border:0;border-radius:10px;color:#20180a;cursor:pointer;font-weight:900;letter-spacing:.6px;margin:18px 0 10px}
+.phitar-primary:disabled,.phitar-open button:disabled,.phitar-actionrow button:disabled{opacity:.48;cursor:default}
+.phitar-fine{color:#93a2b5;font-size:11px;line-height:1.6;margin:8px 0}
+.phitar-manifest{background:#091522;border:1px solid #33495d;border-radius:10px;padding:14px;margin:15px 0;color:#b8d4d8;font-size:12px;overflow-wrap:anywhere}
+.phitar-manifest b{display:block;color:#b7eadb}
+.phitar-manifest>div:not(.phitar-actionrow){display:flex;flex-direction:column;gap:6px;margin-top:10px;max-height:170px;overflow:auto}
+.phitar-manifest>div:not(.phitar-actionrow) span,.phitar-manifest small{color:#91a1b9;font:11px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace}
+.phitar-actionrow{margin-bottom:0}
+.phitar-compat{border-top:1px solid #2a3e56;margin-top:20px;padding-top:21px;color:#d5e0ed}
+.phitar-compat strong{font-size:12px}
+.phitar-compat p{color:#93a9bf;font-size:12px;line-height:1.7;margin:7px 0}
+.phitar-message{display:flex;align-items:flex-start;gap:10px;padding:12px 15px;border:1px solid #357966;background:#113a30;border-radius:10px;font-size:12px;color:#b2f5da;margin-top:16px;overflow-wrap:anywhere}
+.phitar-error{border-color:#a54e3d;background:#381e20;color:#ffd2c5}
+.phitar-message svg{flex:none}
+@media(max-width:850px){.phitar-grid{grid-template-columns:1fr}.phitar-header{align-items:flex-start;flex-direction:column}.phitar-card{padding:18px}}
+@media(max-width:430px){.phitar-fields{grid-template-columns:1fr}.phitar-header h2{font-size:36px}}
