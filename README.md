@@ -4,6 +4,12 @@
 
 **Status:** v0.4 tri-AI merged prototype with PhiTar and Parallax handoff staging. This is **not a cloud compilation service**. Clicking **EXPORT BUILD KIT** downloads a ZIP containing your source, a selected-platform project wrapper, and GitHub Actions workflows. Finished native installers only appear when the workflows actually compile successfully on GitHub runners or a suitable local machine. The generated workflows remain best-effort; platform build results must be verified individually. A first native Windows smoke workflow is available for testing.
 
+## PhiTar v0.5: native folder compression
+
+The standalone PhiTar desktop application can now **select a folder using an operating-system directory picker**, inspect its directory tree using Tauri's scoped filesystem API, and load its regular files into PhiTar's existing ZIP/TAR/TAR.GZ engine. Relative folder paths are preserved. A preflight pass checks file types, rejects symbolic links and unsafe/duplicate filenames, and enforces **1,000 files, 75 MiB total and 20 levels of nesting** *before* reading any file contents. It rechecks metadata while loading to catch changed files. No background upload occurs.
+
+The browser folder selection remains unchanged. This does **not** implement large-file streaming yet; the present memory limits stay in force. See [native folder compression checks](docs/PHITAR_NATIVE_FOLDER.md).
+
 ## PhiTar v0.4: native desktop file dialogs
 
 The *self-packaged PhiTar desktop application* now includes official Tauri 2 dialog and file-system plugins to open archives, select extraction directories and save archives using operating-system dialogs. The **browser** version continues to use standard file inputs, downloads, and File System Access API where available.
