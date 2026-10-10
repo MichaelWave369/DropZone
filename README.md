@@ -4,6 +4,12 @@
 
 **Status:** v0.4 tri-AI merged prototype with PhiTar and Parallax handoff staging. This is **not a cloud compilation service**. Clicking **EXPORT BUILD KIT** downloads a ZIP containing your source, a selected-platform project wrapper, and GitHub Actions workflows. Finished native installers only appear when the workflows actually compile successfully on GitHub runners or a suitable local machine. The generated workflows remain best-effort; platform build results must be verified individually. A first native Windows smoke workflow is available for testing.
 
+## Standalone PhiTar desktop pipeline
+
+PhiTar now has its own standalone React page: **[Open PhiTar Archive Studio](https://michaelwave369.github.io/DropZone/phitar.html)** (published after the PR merges and Pages rebuilds). The new `npm run build:phitar:kit` command compiles the PhiTar page, imports that production bundle into the **actual Drop Zone build generator**, and produces a reviewable Tauri build kit. An independent GitHub Actions matrix then attempts real native Windows, Linux and macOS builds, uploading **unsigned installers only on successful compilation**. These OS targets are not considered verified until their individual jobs pass; installation/use still requires manual testing.
+
+See [PhiTar standalone self-packaging and platform caveats](docs/PHITAR_STANDALONE.md). This is a browser-engine desktop wrapper, not yet a native 7-Zip replacement. Archive limits and webview file-picker compatibility remain documented.
+
 ## PhiTar archive workshop
 
 **PhiTar v0.1** is a browser-local archive station embedded in the live Drop Zone page (navigation: **PhiTar archives**). It is separate from native app packaging. It creates and opens **.zip**, **.tar** and **.tar.gz/.tgz** archives from local files and folder selections; ZIP offers configurable DEFLATE levels. Opened archives are checked for path traversal, unsafe device names, duplicate names, TAR header corruption, unsupported TAR links and expanded-size limits. Compatible browsers can extract into a **new subfolder** selected with the File System Access API, and any browser can repack validated contents into a ZIP download.

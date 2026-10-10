@@ -126,7 +126,7 @@ export default function App() {
   return <div className="app-shell dropzone-theme">
     <header className="topbar">
       <div className="brand"><div className="brand-mark"><Package size={23} strokeWidth={2.5}/></div><div><span className="brand-title">THE <b>DROP ZONE</b></span><span className="brand-sub">CROSS-PLATFORM PACKAGING LAB</span></div></div>
-      <div className="topnav"><a href="#workspace">Drop station</a><a href="#phitar">PhiTar archives</a><a href="#relay-handoff">Relay handoff</a><a href="#how">Pipeline</a><a href="#limits">Reality check</a></div>
+      <div className="topnav"><a href="#workspace">Drop station</a><a href="#phitar">PhiTar archives</a><a href="./phitar.html">PhiTar app ↗</a><a href="#relay-handoff">Relay handoff</a><a href="#how">Pipeline</a><a href="#limits">Reality check</a></div>
       <div className="version"><span className="green-dot"/> BROWSER FIRST <b>v0.4</b></div>
     </header>
     <main>

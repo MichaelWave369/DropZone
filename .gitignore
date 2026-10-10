@@ -3,3 +3,7 @@ dist/
 smoke-output/
 .DS_Store
 *.log
+
+# Generated, auditable PhiTar native self-packaging outputs
+phitar-native-kit/
+phitar-build/
