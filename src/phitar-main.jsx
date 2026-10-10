@@ -20,7 +20,7 @@ function App() {
           Drop Zone builder <ArrowUpRight size={14}/>
         </a>
       </nav>
-      <span className="phitar-app-version">STANDALONE PREVIEW v0.4</span>
+      <span className="phitar-app-version">STANDALONE PREVIEW v0.5</span>
     </header>
     <main className="phitar-app-main">
       <section className="phitar-app-hero">
@@ -38,7 +38,7 @@ function App() {
         <ShieldCheck size={21}/>
         <div>
           <strong>Archive utility, not a file vault.</strong>
-          <p>PhiTar v0.4 is local-first, with 75 MiB input and 150 MiB expanded limits and a 1,000-file cap. Standard ZIP, USTAR TAR and TAR.GZ are supported. RAR, 7z, encryption and huge archive streaming are not yet implemented. The packaged desktop edition uses the same tested browser engine; native builds must pass separately.</p>
+          <p>PhiTar v0.5 is local-first, with 75 MiB input and 150 MiB expanded limits and a 1,000-file cap. Standard ZIP, USTAR TAR and TAR.GZ are supported. RAR, 7z, encryption and huge archive streaming are not yet implemented. The packaged desktop edition uses the same tested browser engine; native builds must pass separately.</p>
         </div>
       </section>
     </main>
