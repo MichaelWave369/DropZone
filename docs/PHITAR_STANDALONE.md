@@ -1,6 +1,6 @@
 # PhiTar standalone: packaging the packager
 
-**PhiTar v0.2 is an independent web entrypoint sharing the same archive component and browser archive engine as The Drop Zone.**
+**PhiTar v0.3 is an independent web entrypoint sharing the same archive component and browser archive engine as The Drop Zone.**
 
 ## Use PhiTar
 
@@ -29,6 +29,15 @@ npx tauri build
 
 The GitHub Actions workflow performs equivalent steps and uploads unsigned installer artifacts. GitHub Actions artifacts expire after seven days. An unsigned Windows installer may trigger SmartScreen; unsigned macOS applications may be blocked by Gatekeeper. The generated app must still be manually installed and exercised on each OS before any consumer release.
 
+## PhiTar v0.3 integrity receipts
+
+PhiTar generates a **SHA-256 integrity receipt** after creating an archive. This receipt contains the exact archive filename, byte size, hash, local timestamp, schema version, and an explicit integrity-only statement. A downloadable `.sha256.json` receipt and copyable checksum are available in the Archive Lab.
+
+The new **Verify SHA-256** station hashes a locally selected archive or other file and optionally compares it with a SHA-256 value from a trusted source. It reports MATCH or MISMATCH for actual file bytes without contacting a server. Current hashing cap: **150 MiB** per file, computed in memory; larger files need future streaming support.
+
+Matching hashes establish byte identity **only**. A checksum cannot prove who supplied a file, whether it contains malware, whether its provenance is trustworthy, or whether it is safe to execute. There is no signing or cryptographic authentication.
+
+Tests exercise known SHA-256 vectors, corrupted-byte mismatches, receipt schema, and input/size validation. The self-packaged desktop program uses the same integrity code as the browser edition.
 ## Supported PhiTar operations
 
 - Local ZIP creation with DEFLATE settings, ZIP inspection with CRC checks, TAR/USTAR creation/inspection, TAR.GZ generation/inspection.
