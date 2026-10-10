@@ -55,7 +55,7 @@ export async function planNativeFolder(root, {readDir, lstat, join, label, maxBy
         entries.push({path:archivePath,absolutePath:full,size:meta.size});
         bytes += meta.size;
         if (entries.length > ARCHIVE_FILE_LIMIT || bytes > maxBytes)
-          throw new Error('Selected folder exceeds 1,000 files or the configured size cap. Nothing was loaded.');
+          throw new Error('Selected folder exceeds 1,000 files or '+(maxBytes===ARCHIVE_INPUT_LIMIT?'75 MiB':'2 GiB')+'. Nothing was loaded.');
       } else {
         throw new Error('Native folder contains a non-regular file.');
       }
