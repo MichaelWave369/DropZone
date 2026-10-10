@@ -136,11 +136,12 @@ export default function PhiTar() {
       const filename = base + '.' + extension;
       const saved = await download(output, filename);
       if (!saved.saved) {setNotice('Save canceled. Archive not written.');return;}
-      setNotice('Created ' + filename + ' • ' + files.length + ' files • ' + prettySize(output.size));
+      const savedFilename = saved.filename || filename;
+      setNotice('Created ' + savedFilename + ' • ' + files.length + ' files • ' + prettySize(output.size));
       try {
-        const receipt = await createArchiveReceipt(output, {filename, action:'created'});
+        const receipt = await createArchiveReceipt(output, {filename:savedFilename, action:'created'});
         setCreatedReceipt(receipt);
-        setNotice('Created ' + filename + ' and computed its SHA-256 receipt locally.');
+        setNotice('Created ' + savedFilename + ' and computed its SHA-256 receipt locally.');
       } catch (receiptErr) {
         setNotice('Archive downloaded, but its receipt could not be generated: ' + receiptErr.message);
       }
