@@ -7,9 +7,10 @@
  */
 import { isTauri } from '@tauri-apps/api/core';
 import { open, save } from '@tauri-apps/plugin-dialog';
-import { mkdir, readDir, readFile, lstat, stat, writeFile, remove, open as fsOpen } from '@tauri-apps/plugin-fs';
+import { mkdir, readDir, readFile, lstat, stat, writeFile, remove, SeekMode, open as fsOpen } from '@tauri-apps/plugin-fs';
 import {planNativeFolder,NATIVE_STREAM_TAR_MAX_BYTES} from './phitar-folder-plan.js';
 import {writeStreamingTar,streamingTarSize} from './phitar-tar-stream.js';
+import {inspectStreamingTar,extractStreamingTar} from './phitar-tar-reader.js';
 import { safeArchivePath, ARCHIVE_FILE_LIMIT, ARCHIVE_INPUT_LIMIT, ARCHIVE_EXPANDED_LIMIT } from './phitar.js';
 
 export function hasNativeArchiveDialog() {
@@ -184,4 +185,98 @@ export async function makeLargeNativeTar({progress}={}) {
     removeIncomplete:()=>remove(output),
   },{progress});
   return {...result,saved:true,filename:nativeBaseName(output),expectedBytes:expected};
+}
+
+
+/** Adapt Tauri 2 seek/read handles to bounded random-access scanning.
+ * No whole-file read: every request is capped to 64 KiB.
+ */
+function nativeRandomAccess(handle,size) {
+  return {
+    size,
+    async readAt(offset,length) {
+      if(!Number.isSafeInteger(offset)||!Number.isInteger(length)||length<1||
+        length>64*1024||offset<0||offset+length>size)
+        throw new Error('TAR read is outside the selected archive.');
+      await handle.seek(offset,SeekMode.Start);
+      const out=new Uint8Array(length);
+      let index=0;
+      while(index<length){
+        const n=await handle.read(out.subarray(index));
+        if(n===null||!Number.isInteger(n)||n<=0||n>length-index)
+          throw new Error('Archive file changed or became truncated.');
+        index+=n;
+      }
+      return out;
+    },
+  };
+}
+
+async function openLargeTarSource(path){
+  const info=await lstat(path);
+  if(!info.isFile||info.isSymlink||info.size<1024||
+    info.size>NATIVE_STREAM_TAR_MAX_BYTES+1024*1024)
+    throw new Error('Select a regular TAR under the 2 GiB native TAR limit.');
+  const handle=await fsOpen(path,{read:true});
+  try {
+    const descriptor=await handle.stat();
+    if(!descriptor.isFile||descriptor.size!==info.size)
+      throw new Error('TAR changed while opening.');
+    return {handle,source:nativeRandomAccess(handle,info.size)};
+  }catch(e){await handle.close();throw e;}
+}
+
+/** Header-only inspection of a system-selected TAR, no payload loading. */
+export async function inspectLargeNativeTar(){
+  if(!hasNativeArchiveDialog()) throw new Error('Native TAR reading requires desktop PhiTar.');
+  const selected=await open({
+    title:'Inspect a large uncompressed TAR',
+    multiple:false,
+    filters:[{name:'TAR archive',extensions:['tar']}],
+  });
+  if(!selected)return null;
+  if(typeof selected!=='string'||!selected.toLowerCase().endsWith('.tar'))
+    throw new Error('Select a .tar archive.');
+  const {handle,source}=await openLargeTarSource(selected);
+  try {
+    const plan=await inspectStreamingTar(source);
+    return {path:selected,filename:nativeBaseName(selected),plan};
+  }finally{await handle.close();}
+}
+
+/** Reinspect TAR after selecting the output parent, before writing any files.
+ * On an I/O failure, leave the new partial folder alone and report the path.
+ */
+export async function extractLargeNativeTar(inspection,{progress}={}){
+  if(!hasNativeArchiveDialog())throw new Error('Native TAR extraction requires desktop PhiTar.');
+  if(!inspection||typeof inspection.path!=='string'||!inspection.plan)
+    throw new Error('Inspect a native TAR first.');
+  const parent=await open({
+    title:'Choose output parent folder for large TAR',
+    directory:true,recursive:true,multiple:false,
+  });
+  if(!parent)return {saved:false};
+  if(typeof parent!=='string')throw new Error('Select one output parent folder.');
+  const {handle,source}=await openLargeTarSource(inspection.path);
+  let root=null;
+  try{
+    const updated=await inspectStreamingTar(source);
+    const expected=inspection.plan;
+    if(updated.archiveBytes!==expected.archiveBytes||updated.entries.length!==expected.entries.length||
+      updated.entries.some((x,i)=>x.path!==expected.entries[i].path||
+        x.size!==expected.entries[i].size||x.dataOffset!==expected.entries[i].dataOffset))
+      throw new Error('TAR changed since inspection. Reopen it before extraction.');
+    root=nativeJoin(parent,'phitar-large-extracted-'+Date.now());
+    try {
+      return await extractStreamingTar(updated,{
+        readAt:source.readAt,
+        createRoot:async()=>{await mkdir(root,{recursive:false});return root;},
+        mkdir:p=>mkdir(p,{recursive:true}),
+        join:nativeJoin,
+        openNew:p=>fsOpen(p,{write:true,createNew:true}),
+      },{progress});
+    }catch(e){
+      throw new Error(e.message+(root?' Partial output, if created, may remain at '+root+'.':''));
+    }
+  }finally{await handle.close();}
 }
