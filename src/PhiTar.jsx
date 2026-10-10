@@ -275,7 +275,7 @@ export default function PhiTar() {
         </div>
         <div className="phitar-controls">
           <button type="button" onClick={()=>fileInput.current?.click()}><FileArchive size={16}/> Select files</button>
-          <button type="button" disabled={busy} onClick={()=>native?chooseNativeFolder():folderInput.current?.click()}><FolderOpen size={16}/> {native?'Select system folder':'Select folder'}</button>
+          <button type="button" disabled={busy||streaming} onClick={()=>native?chooseNativeFolder():folderInput.current?.click()}><FolderOpen size={16}/> {native?'Select system folder':'Select folder'}</button>
           <input hidden ref={fileInput} type="file" multiple onChange={e=>{handleFiles(e.target.files);e.target.value='';}}/>
           <input hidden ref={folderInput} type="file" multiple webkitdirectory="" onChange={e=>{handleFiles(e.target.files);e.target.value='';}}/>
         </div>
@@ -293,7 +293,7 @@ export default function PhiTar() {
             <option value="0">0 · fastest</option><option value="6">6 · balanced</option><option value="9">9 · smaller</option>
           </select></label>
         </div>
-        <button className="phitar-primary" type="button" disabled={busy||!files.length} onClick={create}>
+        <button className="phitar-primary" type="button" disabled={busy||streaming||!files.length} onClick={create}>
           <ArrowDownToLine size={17}/> {busy?'Processing…':'CREATE ARCHIVE'}
         </button>
         {native&&<p className="phitar-fine">Desktop mode: saving opens your system file picker. Folder imports use a recursive system picker and reject symlinks, unsafe paths and excess file sizes before loading data.</p>}
