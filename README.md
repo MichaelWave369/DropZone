@@ -4,6 +4,15 @@
 
 **Status:** v0.4 tri-AI merged prototype with PhiTar and Parallax handoff staging. This is **not a cloud compilation service**. Clicking **EXPORT BUILD KIT** downloads a ZIP containing your source, a selected-platform project wrapper, and GitHub Actions workflows. Finished native installers only appear when the workflows actually compile successfully on GitHub runners or a suitable local machine. The generated workflows remain best-effort; platform build results must be verified individually. A first native Windows smoke workflow is available for testing.
 
+## PhiTar v0.3 integrity receipts
+
+PhiTar generates a **SHA-256 integrity receipt** after creating an archive. This receipt contains the exact archive filename, byte size, hash, local timestamp, schema version, and an explicit integrity-only statement. A downloadable `.sha256.json` receipt and copyable checksum are available in the Archive Lab.
+
+The new **Verify SHA-256** station hashes a locally selected archive or other file and optionally compares it with a SHA-256 value from a trusted source. It reports MATCH or MISMATCH for actual file bytes without contacting a server. Current hashing cap: **150 MiB** per file, computed in memory; larger files need future streaming support.
+
+Matching hashes establish byte identity **only**. A checksum cannot prove who supplied a file, whether it contains malware, whether its provenance is trustworthy, or whether it is safe to execute. There is no signing or cryptographic authentication.
+
+Tests exercise known SHA-256 vectors, corrupted-byte mismatches, receipt schema, and input/size validation. The self-packaged desktop program uses the same integrity code as the browser edition.
 ## Standalone PhiTar desktop pipeline
 
 PhiTar now has its own standalone React page: **[Open PhiTar Archive Studio](https://michaelwave369.github.io/DropZone/phitar.html)** (published after the PR merges and Pages rebuilds). The new `npm run build:phitar:kit` command compiles the PhiTar page, imports that production bundle into the **actual Drop Zone build generator**, and produces a reviewable Tauri build kit. An independent GitHub Actions matrix then attempts real native Windows, Linux and macOS builds, uploading **unsigned installers only on successful compilation**. These OS targets are not considered verified until their individual jobs pass; installation/use still requires manual testing.
