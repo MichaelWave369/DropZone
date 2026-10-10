@@ -4,6 +4,13 @@
 
 **Status:** v0.4 tri-AI merged prototype with PhiTar and Parallax handoff staging. This is **not a cloud compilation service**. Clicking **EXPORT BUILD KIT** downloads a ZIP containing your source, a selected-platform project wrapper, and GitHub Actions workflows. Finished native installers only appear when the workflows actually compile successfully on GitHub runners or a suitable local machine. The generated workflows remain best-effort; platform build results must be verified individually. A first native Windows smoke workflow is available for testing.
 
+## PhiTar v0.7: stream-inspect and extract large TAR archives
+
+The desktop PhiTar app can inspect large uncompressed POSIX USTAR TAR files without reading the file contents into memory. A separate extraction action revalidates the archive, asks for a destination folder, creates a new subdirectory and writes regular files in 64 KiB chunks. File paths, sizes and TAR headers are checked before writing; no existing destination files are intentionally overwritten.
+
+This remains a **native preview** capped around 2 GiB, up to 1,000 files and 2 GiB unpacked bytes. PAX/GNU extensions, compressed TAR, large ZIP and streaming checksum receipts are not supported. Extracting a malicious archive is not equivalent to running a malware scan. If extraction fails midway, the app reports a partial folder instead of deleting it automatically. Desktop GUI operations require manual smoke testing.
+
+See [the large TAR reader and extraction guide](docs/PHITAR_STREAMING_READER.md).
 ## PhiTar v0.6: large native TAR streaming preview
 
 PhiTar's standalone Tauri desktop application now offers a separate **Stream large folder to TAR** action. It scans a user-selected folder's metadata, then writes POSIX USTAR with 64 KiB read/write buffers to a **new** destination outside that folder, with a maximum **2 GiB total source size** and 1,000 files. No whole-archive buffer is allocated, and existing archives are not overwritten. The underlying Tauri filesystem permissions remain scoped to the user's selected source and output.
