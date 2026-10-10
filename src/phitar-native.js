@@ -19,7 +19,13 @@ export function nativeJoin(root, ...segments) {
     throw new Error('Native output root must come from a selected absolute directory.');
   // Native dialog paths may contain either separator depending on platform.
   const separator = root.includes('\\') ? '\\' : '/';
-  const normalized = segments.flatMap(segment => safeArchivePath(segment).split('/'));
+  const normalized = segments.flatMap(segment => {
+    const path = safeArchivePath(segment);
+    // Windows disallows these characters, and ':' can introduce alternate
+    // data streams that should never be created during archive extraction.
+    if (/[:*?"<>|]/.test(path)) throw new Error('Unsafe filename for native extraction.');
+    return path.split('/');
+  });
   return root.replace(/[\\/]+$/, '') + separator + normalized.join(separator);
 }
 
