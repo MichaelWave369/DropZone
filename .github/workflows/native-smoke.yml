@@ -1,0 +1,49 @@
+name: Drop Zone native Windows smoke test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/native-smoke.yml'
+      - 'scripts/native-smoke-kit.mjs'
+      - 'examples/hello.html'
+
+permissions:
+  contents: read
+
+jobs:
+  windows-installer:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: smoke-output/src-tauri -> target
+      - name: Install Drop Zone dependencies
+        run: npm install --no-audit --no-fund
+      - name: Generate build kit through the real engine
+        run: node scripts/native-smoke-kit.mjs
+      - name: Install generated kit dependencies
+        working-directory: smoke-output
+        run: npm install --no-audit --no-fund
+      - name: Generate native platform icons
+        working-directory: smoke-output
+        run: npx tauri icon assets/icon.png
+      - name: Compile unsigned Windows installers
+        working-directory: smoke-output
+        run: npx tauri build
+      - name: Upload installer artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dropzone-native-windows-smoke
+          path: |
+            smoke-output/src-tauri/target/release/bundle/nsis/*.exe
+            smoke-output/src-tauri/target/release/bundle/msi/*.msi
+          if-no-files-found: error
+          retention-days: 7
