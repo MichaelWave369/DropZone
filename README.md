@@ -4,6 +4,14 @@
 
 **Status:** v0.4 tri-AI merged prototype with PhiTar and Parallax handoff staging. This is **not a cloud compilation service**. Clicking **EXPORT BUILD KIT** downloads a ZIP containing your source, a selected-platform project wrapper, and GitHub Actions workflows. Finished native installers only appear when the workflows actually compile successfully on GitHub runners or a suitable local machine. The generated workflows remain best-effort; platform build results must be verified individually. A first native Windows smoke workflow is available for testing.
 
+## PhiTar v0.6: large native TAR streaming preview
+
+PhiTar's standalone Tauri desktop application now offers a separate **Stream large folder to TAR** action. It scans a user-selected folder's metadata, then writes POSIX USTAR with 64 KiB read/write buffers to a **new** destination outside that folder, with a maximum **2 GiB total source size** and 1,000 files. No whole-archive buffer is allocated, and existing archives are not overwritten. The underlying Tauri filesystem permissions remain scoped to the user's selected source and output.
+
+**Important:** This is creation of **uncompressed TAR only**. Large TAR inspection/extraction, streaming ZIP/TAR.GZ, streaming SHA-256 receipts and cancellation are **not implemented yet**. PhiTar's existing inspector still refuses archives above 75 MiB. Open/extract a large TAR with an established system archive utility, and manually check the bytes. Browser mode retains the original limits.
+
+See [PhiTar large TAR streaming proof and limitations](docs/PHITAR_STREAMING_TAR.md).
+
 ## PhiTar v0.5: native folder compression
 
 The standalone PhiTar desktop application can now **select a folder using an operating-system directory picker**, inspect its directory tree using Tauri's scoped filesystem API, and load its regular files into PhiTar's existing ZIP/TAR/TAR.GZ engine. Relative folder paths are preserved. A preflight pass checks file types, rejects symbolic links and unsafe/duplicate filenames, and enforces **1,000 files, 75 MiB total and 20 levels of nesting** *before* reading any file contents. It rechecks metadata while loading to catch changed files. No background upload occurs.
