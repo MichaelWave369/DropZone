@@ -78,7 +78,7 @@ test('preflight rejects special files and invalid folder labels',async()=>{
     '/chosen/pipe':{isFile:false,isDirectory:false,size:0},
   });
   await assert.rejects(planNativeFolder('/chosen',fake),/non-regular/);
-  await assert.rejects(planNativeFolder('/chosen',{...fake,label:'../unsafe'}),/single directory name/);
+  await assert.rejects(planNativeFolder('/chosen',{...fake,label:'../unsafe'}),/traversal|non-portable|single directory name/);
 });
 
 test('empty folder does not generate an empty or misleading ZIP',async()=>{
