@@ -6,7 +6,7 @@ import {
   collectArchiveFiles, createTar, inspectTar, gzipBytes, gunzipBytes,
   prettySize, safeArchivePath,
 } from './phitar.js';
-import {hasNativeArchiveDialog, pickNativeArchive, pickNativeFolderFiles, saveNativeArchive, extractNativeArchive} from './phitar-native.js';
+import {hasNativeArchiveDialog, pickNativeArchive, pickNativeFolderFiles, makeLargeNativeTar, saveNativeArchive, extractNativeArchive} from './phitar-native.js';
 import {sha256File, compareSha256, createArchiveReceipt, receiptJson, MAX_HASH_BYTES} from './phitar-integrity.js';
 
 async function download(blob, filename) {
@@ -98,6 +98,8 @@ export default function PhiTar() {
   const [expectedHash,setExpectedHash] = useState('');
   const [verifyDigest,setVerifyDigest] = useState(null);
   const [verifyBusy,setVerifyBusy] = useState(false);
+  const [streaming,setStreaming] = useState(false);
+  const [streamProgress,setStreamProgress] = useState('');
   const [verifyError,setVerifyError] = useState('');
   const [verifyStatus,setVerifyStatus] = useState('');
   const verifyInput = useRef(null);
@@ -122,6 +124,22 @@ export default function PhiTar() {
     } catch(e) {
       setError(e.message||'Could not load the selected directory.');
     } finally {setBusy(false);}
+  }
+  async function createLargeNativeTar() {
+    setStreaming(true);setError('');setNotice('');setStreamProgress('Choose a source folder to scan.');
+    try {
+      const result=await makeLargeNativeTar({progress:({files,totalFiles})=>{
+        setStreamProgress('Streaming file '+files+' of '+totalFiles+'…');
+      }});
+      if(!result.saved){
+        setNotice('Streaming TAR canceled. No archive was created.');
+        return;
+      }
+      setNotice('Saved '+result.filename+' • '+result.files+' files • '+prettySize(result.bytes)+'. No whole-archive memory allocation.');
+      setStreamProgress('Streaming TAR completed.');
+    }catch(e){
+      setError(e.message||'Native TAR streaming failed.');
+    }finally {setStreaming(false);}
   }
   async function create() {
     setBusy(true);setError('');setNotice('');setCreatedReceipt(null);
@@ -240,7 +258,7 @@ export default function PhiTar() {
   const total = files.reduce((sum,f)=>sum+f.file.size,0);
   return <section className="phitar-section" id="phitar" aria-label="PhiTar archive lab">
     <div className="phitar-header">
-      <div><span className="mini-label"><Archive size={15}/> PHITAR / ARCHIVE LAB • v0.5</span>
+      <div><span className="mini-label"><Archive size={15}/> PHITAR / ARCHIVE LAB • v0.6</span>
         <h2>Compress with a little <span>Phi.</span></h2>
         <p>Create and open genuine ZIP, TAR and TAR.GZ archives. No installers, backend, or code execution involved.</p>
       </div>
@@ -257,7 +275,7 @@ export default function PhiTar() {
         </div>
         <div className="phitar-controls">
           <button type="button" onClick={()=>fileInput.current?.click()}><FileArchive size={16}/> Select files</button>
-          <button type="button" disabled={busy} onClick={()=>native?chooseNativeFolder():folderInput.current?.click()}><FolderOpen size={16}/> {native?'Select system folder':'Select folder'}</button>
+          <button type="button" disabled={busy||streaming} onClick={()=>native?chooseNativeFolder():folderInput.current?.click()}><FolderOpen size={16}/> {native?'Select system folder':'Select folder'}</button>
           <input hidden ref={fileInput} type="file" multiple onChange={e=>{handleFiles(e.target.files);e.target.value='';}}/>
           <input hidden ref={folderInput} type="file" multiple webkitdirectory="" onChange={e=>{handleFiles(e.target.files);e.target.value='';}}/>
         </div>
@@ -275,10 +293,19 @@ export default function PhiTar() {
             <option value="0">0 · fastest</option><option value="6">6 · balanced</option><option value="9">9 · smaller</option>
           </select></label>
         </div>
-        <button className="phitar-primary" type="button" disabled={busy||!files.length} onClick={create}>
+        <button className="phitar-primary" type="button" disabled={busy||streaming||!files.length} onClick={create}>
           <ArrowDownToLine size={17}/> {busy?'Processing…':'CREATE ARCHIVE'}
         </button>
         {native&&<p className="phitar-fine">Desktop mode: saving opens your system file picker. Folder imports use a recursive system picker and reject symlinks, unsafe paths and excess file sizes before loading data.</p>}
+        {native&&<div className="phitar-large-tar">
+          <strong>Large TAR studio • Native preview</strong>
+          <p>Stream a selected folder into an uncompressed TAR with 64 KiB buffers. Up to 2 GiB input and 1,000 files. Save outside the source folder. ZIP and TAR.GZ keep their existing 75 MiB limit.</p>
+          <button type="button" disabled={busy||streaming} onClick={createLargeNativeTar}>
+            <FolderOpen size={17}/>{streaming?'Streaming large TAR…':'STREAM LARGE FOLDER TO TAR'}
+          </button>
+          {streamProgress&&<small role="status">{streamProgress}</small>}
+          <small>No SHA-256 receipt yet. Large TAR output cannot yet be reopened or extracted within PhiTar's 75 MiB inspection limit. Use a system TAR tool for that. No compression, encryption, signing or upload.</small>
+        </div>}
         <p className="phitar-fine">ZIP supports Unicode paths. TAR uses POSIX USTAR ASCII path limits. Maximum 1000 files / 75 MB input.</p>
         {createdReceipt&&<div className="phitar-receipt" aria-label="Last created archive SHA-256 receipt">
           <strong><Fingerprint size={15}/> Last created archive checksum</strong>

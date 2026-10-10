@@ -5,6 +5,7 @@
 import {safeArchivePath, ARCHIVE_FILE_LIMIT, ARCHIVE_INPUT_LIMIT} from './phitar.js';
 
 export const NATIVE_FOLDER_MAX_DEPTH = 20;
+export const NATIVE_STREAM_TAR_MAX_BYTES = 2 * 1024 * 1024 * 1024;
 export const NATIVE_FOLDER_MAX_DIRECTORIES = 2000;
 
 export function validateNativeArchivePath(path) {
@@ -15,9 +16,10 @@ export function validateNativeArchivePath(path) {
   return safe;
 }
 
-export async function planNativeFolder(root, {readDir, lstat, join, label} = {}) {
+export async function planNativeFolder(root, {readDir, lstat, join, label, maxBytes = ARCHIVE_INPUT_LIMIT} = {}) {
   if (!root || typeof readDir !== 'function' || typeof lstat !== 'function' || typeof join !== 'function')
     throw new Error('Native folder scanning requires a selected directory.');
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1 || maxBytes > NATIVE_STREAM_TAR_MAX_BYTES) throw new Error('Invalid native folder scan byte limit.');
   const rootName = validateNativeArchivePath(label);
   if (rootName.includes('/')) throw new Error('Folder label must be a single directory name.');
   const rootInfo = await lstat(root);
@@ -52,8 +54,8 @@ export async function planNativeFolder(root, {readDir, lstat, join, label} = {})
         if (!Number.isSafeInteger(meta.size) || meta.size < 0) throw new Error('Invalid native file size.');
         entries.push({path:archivePath,absolutePath:full,size:meta.size});
         bytes += meta.size;
-        if (entries.length > ARCHIVE_FILE_LIMIT || bytes > ARCHIVE_INPUT_LIMIT)
-          throw new Error('Selected folder exceeds 1,000 files or 75 MiB. Nothing was loaded.');
+        if (entries.length > ARCHIVE_FILE_LIMIT || bytes > maxBytes)
+          throw new Error('Selected folder exceeds 1,000 files or '+(maxBytes===ARCHIVE_INPUT_LIMIT?'75 MiB':'2 GiB')+'. Nothing was loaded.');
       } else {
         throw new Error('Native folder contains a non-regular file.');
       }

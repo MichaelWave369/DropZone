@@ -110,7 +110,7 @@ if (inspected.kind !== 'static' || inspected.entry !== 'index.html') {
   throw new Error('The standalone PhiTar dist did not inspect as a static project.');
 }
 const kit = await buildKit(inspected, 'PhiTar', ['windows','linux','macos'], ()=>{}, {
-  version:'0.5.0',
+  version:'0.6.0',
   appId:'com.phi369.phitar',
   color:'#101a21',
 });
@@ -141,6 +141,10 @@ caps.permissions = [
   'core:default',
   'dialog:allow-open',
   'dialog:allow-save',
+  'fs:allow-open',
+  'fs:allow-read',
+  'fs:allow-write',
+  'fs:allow-remove',
   'fs:allow-read-file',
   'fs:allow-read-dir',
   'fs:allow-lstat',

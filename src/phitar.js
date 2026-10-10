@@ -86,6 +86,11 @@ function header(path, byteLength, mtime) {
   return h;
 }
 
+// Streaming TAR uses the exact same validated POSIX USTAR header as in-memory TAR.
+export function createTarHeader(path, length, mtime = 0) {
+  return header(safeArchivePath(path), length, mtime);
+}
+
 export function createTar(entries) {
   if (!entries.length || entries.length > ARCHIVE_FILE_LIMIT) throw new Error('Invalid TAR file count.');
   let size = 1024;
