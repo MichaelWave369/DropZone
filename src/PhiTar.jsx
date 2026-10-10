@@ -1,11 +1,12 @@
 import React, {useRef, useState} from 'react';
 import JSZip from 'jszip';
-import {Archive, ArrowDownToLine, CheckCircle2, CircleAlert, FileArchive, FolderOpen, LockKeyhole, PackageOpen, UploadCloud} from 'lucide-react';
+import {Archive, ArrowDownToLine, CheckCircle2, CircleAlert, FileArchive, FolderOpen, LockKeyhole, PackageOpen, UploadCloud, Fingerprint, Copy} from 'lucide-react';
 import {
   ARCHIVE_INPUT_LIMIT, ARCHIVE_EXPANDED_LIMIT, ARCHIVE_FILE_LIMIT,
   collectArchiveFiles, createTar, inspectTar, gzipBytes, gunzipBytes,
   prettySize, safeArchivePath,
 } from './phitar.js';
+import {sha256File, compareSha256, createArchiveReceipt, receiptJson, MAX_HASH_BYTES} from './phitar-integrity.js';
 
 function download(blob, filename) {
   const url = URL.createObjectURL(blob);
@@ -88,9 +89,17 @@ export default function PhiTar() {
   const folderInput = useRef(null);
   const openInput = useRef(null);
   const [drag,setDrag] = useState(false);
+  const [createdReceipt,setCreatedReceipt] = useState(null);
+  const [verifyFile,setVerifyFile] = useState(null);
+  const [expectedHash,setExpectedHash] = useState('');
+  const [verifyDigest,setVerifyDigest] = useState(null);
+  const [verifyBusy,setVerifyBusy] = useState(false);
+  const [verifyError,setVerifyError] = useState('');
+  const [verifyStatus,setVerifyStatus] = useState('');
+  const verifyInput = useRef(null);
 
   function handleFiles(list) {
-    setError('');setNotice('');
+    setError('');setNotice('');setCreatedReceipt(null);
     try {
       const data = collectArchiveFiles(list);
       setFiles(data);
@@ -99,7 +108,7 @@ export default function PhiTar() {
   }
 
   async function create() {
-    setBusy(true);setError('');setNotice('');
+    setBusy(true);setError('');setNotice('');setCreatedReceipt(null);
     try {
       if (!files.length) throw new Error('Add files before compressing.');
       const base = cleanName(name);
@@ -120,8 +129,16 @@ export default function PhiTar() {
           new Blob([tar],{type:'application/x-tar'});
         extension = format === 'tgz' ? 'tar.gz' : 'tar';
       }
-      download(output, base + '.' + extension);
-      setNotice('Created ' + base + '.' + extension + ' • ' + files.length + ' files • ' + prettySize(output.size));
+      const filename = base + '.' + extension;
+      download(output, filename);
+      setNotice('Created ' + filename + ' • ' + files.length + ' files • ' + prettySize(output.size));
+      try {
+        const receipt = await createArchiveReceipt(output, {filename, action:'created'});
+        setCreatedReceipt(receipt);
+        setNotice('Created ' + filename + ' and computed its SHA-256 receipt locally.');
+      } catch (receiptErr) {
+        setNotice('Archive downloaded, but its receipt could not be generated: ' + receiptErr.message);
+      }
     } catch (e) { setError(e.message || 'Archive creation failed.'); }
     finally { setBusy(false); }
   }
@@ -155,6 +172,34 @@ export default function PhiTar() {
     } catch (e) {setError(e.message || 'ZIP repack failed.');}
     finally {setBusy(false);}
   }
+  function downloadReceipt() {
+    if (!createdReceipt) return;
+    download(new Blob([receiptJson(createdReceipt)],{type:'application/json'}),createdReceipt.filename+'.sha256.json');
+  }
+  async function copyReceiptHash() {
+    if (!createdReceipt) return;
+    try { await navigator.clipboard.writeText(createdReceipt.sha256); setNotice('Copied SHA-256 to clipboard.'); }
+    catch { setError('Clipboard unavailable. Select and copy the checksum below.'); }
+  }
+  async function verifySelected() {
+    setVerifyError('');setVerifyStatus('');setVerifyDigest(null);setVerifyBusy(true);
+    try {
+      if (!verifyFile) throw new Error('Choose an archive or file to verify.');
+      if (verifyFile.size > MAX_HASH_BYTES) throw new Error('File exceeds the 150 MiB hash limit.');
+      const value = await sha256File(verifyFile);
+      const comparison = compareSha256(value, expectedHash);
+      setVerifyDigest({sha256:value,filename:verifyFile.name,sizeBytes:verifyFile.size});
+      setVerifyStatus(comparison.status === 'MATCH'
+        ? 'MATCH: these file bytes equal the expected SHA-256.'
+        : comparison.status === 'MISMATCH'
+        ? 'MISMATCH: file bytes differ from the expected SHA-256.'
+        : 'SHA-256 computed. Paste an expected SHA-256 to compare.');
+    } catch (e) {setVerifyError(e.message || 'Could not calculate SHA-256.');}
+    finally {setVerifyBusy(false);}
+  }
+  const comparisonStatus = verifyDigest && /^[a-f0-9]{64}$/i.test(expectedHash.trim())
+    ? (verifyDigest.sha256 === expectedHash.trim().toLowerCase() ? 'MATCH' : 'MISMATCH')
+    : null;
   const total = files.reduce((sum,f)=>sum+f.file.size,0);
   return <section className="phitar-section" id="phitar" aria-label="PhiTar archive lab">
     <div className="phitar-header">
@@ -197,6 +242,15 @@ export default function PhiTar() {
           <ArrowDownToLine size={17}/> {busy?'Processing…':'CREATE ARCHIVE'}
         </button>
         <p className="phitar-fine">ZIP supports Unicode paths. TAR uses POSIX USTAR ASCII path limits. Maximum 1000 files / 75 MB input.</p>
+        {createdReceipt&&<div className="phitar-receipt" aria-label="Last created archive SHA-256 receipt">
+          <strong><Fingerprint size={15}/> Last created archive checksum</strong>
+          <small>{createdReceipt.filename} · {prettySize(createdReceipt.sizeBytes)}</small>
+          <code>{createdReceipt.sha256}</code>
+          <div className="phitar-actionrow">
+            <button type="button" onClick={copyReceiptHash}><Copy size={14}/> Copy SHA-256</button>
+            <button type="button" onClick={downloadReceipt}><ArrowDownToLine size={14}/> Save receipt JSON</button>
+          </div>
+        </div>}
       </div>
       <div className="phitar-card">
         <div className="phitar-card-title"><span className="phitar-number">02</span><h3>Open / extract</h3></div>
@@ -218,6 +272,30 @@ export default function PhiTar() {
         </div>}
         <div className="phitar-compat"><strong>Coming later</strong><p>7z and RAR read support. RAR creation is not in v0.1; it requires separate proprietary-format tooling.</p></div>
       </div>
+    </div>
+    <div className="phitar-verify">
+      <div className="phitar-card-title"><span className="phitar-number">03</span><h3><Fingerprint size={18}/> Verify a file's SHA-256</h3></div>
+      <p>Compare a downloaded archive against a checksum you already trust. PhiTar hashes locally; no file is uploaded.</p>
+      <div className="phitar-verify-fields">
+        <div>
+          <button type="button" className="phitar-verify-pick" onClick={()=>verifyInput.current?.click()}><FileArchive size={16}/> {verifyFile?'Change file':'Choose file'}</button>
+          <input ref={verifyInput} type="file" hidden onChange={e=>{setVerifyFile(e.target.files?.[0]||null);setVerifyDigest(null);setVerifyStatus('');setVerifyError('');e.target.value='';}}/>
+          {verifyFile&&<small>{verifyFile.name} · {prettySize(verifyFile.size)}</small>}
+        </div>
+        <label>EXPECTED SHA-256 (OPTIONAL)<input value={expectedHash} onChange={e=>{setExpectedHash(e.target.value);setVerifyStatus('');setVerifyError('');}} placeholder="Paste 64-character SHA-256 checksum" spellCheck={false}/></label>
+        <button type="button" className="phitar-verify-run" disabled={!verifyFile||verifyBusy} onClick={verifySelected}>
+          <Fingerprint size={15}/>{verifyBusy?'Hashing locally…':'CHECK SHA-256'}
+        </button>
+      </div>
+      {verifyDigest&&<div className="phitar-verify-result">
+        <span>Calculated SHA-256 for {verifyDigest.filename}</span>
+        <code>{verifyDigest.sha256}</code>
+        {comparisonStatus==='MATCH'&&<strong className="phitar-hash-match"><CheckCircle2 size={15}/> Checksum matches</strong>}
+        {comparisonStatus==='MISMATCH'&&<strong className="phitar-hash-mismatch"><CircleAlert size={15}/> Checksum mismatch. Do not treat the file as identical.</strong>}
+        {verifyStatus&&<small>{verifyStatus}</small>}
+      </div>}
+      {verifyError&&<div className="phitar-message phitar-error" role="alert">{verifyError}</div>}
+      <p className="phitar-fine">SHA-256 verifies byte identity, not a sender's identity, permission to use a file, or malware safety. Max 150 MiB per hashing operation.</p>
     </div>
     {notice&&<div className="phitar-message" role="status"><CheckCircle2 size={16}/>{notice}</div>}
     {error&&<div className="phitar-message phitar-error" role="alert"><CircleAlert size={16}/>{error}</div>}
