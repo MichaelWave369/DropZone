@@ -1,30 +1,90 @@
 # The Drop Zone
 
-**Source in. Build kit out.**
+**Source in. Build kit out.** A browser-first React/Vite app that turns **trusted** source projects into cross-platform build recipes and project wrappers. Formerly the AppForge 369 prototype, now merged with selected ideas from Claude’s App Packager (provided separately). Now incorporates selected ideas from a user-supplied Grok Forgepack workspace, while retaining our AppForge/Claude architecture. MIT licensed.
 
-The Drop Zone combines the AppForge 369 prototype with selected ideas from Claude's App Packager and Grok's Forgepack.
+**Status:** v0.3 tri-AI merged prototype. This is **not a cloud compilation service**. Clicking **EXPORT BUILD KIT** downloads a ZIP containing your source, a selected-platform project wrapper, and GitHub Actions workflows. Finished native installers only appear when the workflows actually compile successfully on GitHub runners or a suitable local machine. The generated workflows are best-effort and have not yet been tested on real platform runners.
 
-## Current hosted version
+## Local development
 
-The initial GitHub Pages preview is an adapted single-file React packager from Claude. It accepts ZIP, HTML, and JSX projects and exports GitHub Actions packaging kits. **It does not compile native binaries in the browser.** The old Claude-specific download API has been replaced with a standard browser ZIP download.
+Requirements: Node.js 22+ and npm.
 
-The **v0.3 tri-AI React/Vite starter** adds folder imports, entrypoint selection, restricted HTML previews, samples, a Tauri desktop pipeline, Capacitor mobile output, Python executables, and source safety checks. That full project has **not yet been committed** here; it is available as `The-Drop-Zone-v0.3-tri-ai-starter.zip` in the project conversation.
+```bash
+npm install
+npm run dev
+npm test
+npm run build
+```
 
-## Publish
+The GitHub Pages workflow in `.github/workflows/pages.yml` deploys the React interface from `main`. In the repository settings choose **Pages → GitHub Actions**. No production URL exists until the repository has been created and deployed.
 
-1. Merge the Pages bootstrap PR.
-2. In **Settings → Pages**, select **Build and deployment → Source: GitHub Actions**.
-3. Watch **Actions → Drop Zone GitHub Pages** or run the workflow manually.
-4. Expected URL: https://michaelwave369.github.io/DropZone/
+## What can be imported
 
-## Upgrade to v0.3
+| Input | Detected as | Notes |
+| --- | --- | --- |
+| `.html` / `.htm` | Static website | Only self-contained HTML; use ZIP for local linked assets |
+| `.zip` with `index.html` | Static website | Linked styles/scripts/assets included |
+| Project folder | Static/Vite/CRA/Python | Use folder picker or drag a folder (supported browsers); dependency/build folders and obvious secrets excluded |
+| Multiple HTML/Python entrypoints | Static or Python | Choose entry page/script before exporting; non-root HTML gets an entry redirect |
+| `.jsx` / `.js` with `export default` | React single-file scaffold | Built into a minimal Vite project; extra third-party imports need verified dependencies |
+| Vite ZIP with `package.json` | Vite | Needs a `build` script, creates `dist/index.html` |
+| Create React App ZIP | CRA | Uses `build/index.html`; legacy adapter; not guaranteed for every app |
+| Generic Node web ZIP | Static output adapter | Needs `npm run build` producing `dist/`, `build/`, or `out/` with `index.html` |
+| `.py`, Python ZIP | Python | Platform executables only, not a mobile app |
+| Public GitHub repo URL | The format inside its archive | Public only; browser API limits apply |
 
-Preferred: extract `The-Drop-Zone-v0.3-tri-ai-starter.zip` and commit the extracted files to the repository root. The existing Pages workflow detects `package.json`, runs tests and builds the Vite app before deploying `dist/`.
+Next.js server-rendered applications and applications that require an external backend are **not automatically converted**. Websites that depend on cloud services retain that dependency after wrapping.
 
-Alternate: upload the *unmodified* ZIP named `The-Drop-Zone-v0.3-tri-ai-starter.zip` at repository root. The Pages workflow can extract and compile it without committing individual source files, but committing source is better for review and maintenance.
+## Export targets
 
-## Platform and security notes
+* **Windows / Linux / macOS:** Tauri 2 native desktop application wrapper, or PyInstaller executable for Python. All unsigned by default. Runner OS determines available artifact type.
+* **Android:** Capacitor 8 debug APK, for development/testing, not Play Store release.
+* **iOS:** Unsigned Capacitor Xcode project on a macOS runner. Installing on devices/TestFlight requires signing and further provisioning.
+* **Installable Web / PWA:** Manifest, PNG app icons, conservative offline service worker, and web bundle workflow. Host on HTTPS to enable installation. Only supported for static, Vite, and CRA projects in this version.
 
-Windows/macOS/Linux apps require suitable native build workers; Android builds are debug APKs; iPhone apps require Apple signing/provisioning. A PWA is not an IPA/APK. All build kits are best-effort and native runner builds remain to be validated. Review imported code and CI scripts before running; do not upload secrets or use untrusted build inputs.
+Exports also contain configurable app name, version, reverse-domain app ID and icon color/image. The workspace now includes two local starter samples and a restricted HTML snapshot (scripts and network disabled), inspired by Grok’s workspace. This preview is NOT a runtime verification of the packaged app. Inspect generated `.github/workflows` before running them; the UI can preview this YAML immediately after export. Generated archives contain `dropzone-manifest.json` with conversion metadata.
 
-MIT licensed.
+## Security model
+
+* Inputs are parsed as data locally in the browser, not run during inspection.
+* ZIPs are limited by approximate compressed and expanded sizes and entry count, and suspicious secret files, dependencies, `.git`, and old workflows are excluded. These are **best-effort checks** and do not make untrusted code safe.
+* Importing a public GitHub URL fetches that repository from GitHub directly in the browser. A private repository should be manually downloaded and ZIP-uploaded.
+* A generated kit executes imported dependency build scripts on the runner. **Do not run unknown code in GitHub Actions** or grant a workflow secrets unless that code is reviewed. Keep the generated kit private until reviewed.
+* No signing certificates are collected, transmitted, or included in ZIPs. Add them later using repository secrets if/when signing support is explicitly developed.
+* Outputs and workflows are provided without guarantees; platform SDK versions, plugin compatibility, Rust/Xcode requirements, and build failures must be validated per project.
+
+## What we selectively merged from Grok's Forgepack workspace (v0.3)
+
+* Whole-folder upload via `webkitdirectory` and directory drag-and-drop when the browser supports it
+* Multiple-entrypoint chooser for HTML and Python sources
+* Read-only, isolated HTML snapshot with restrictive CSP and no script execution
+* Clickable test samples (Neon Note and Hello Python)
+* Stronger folder-safety tests for traversal, ignored generated folders, obvious secrets and oversized inputs
+
+The implementation is adapted into our existing browser-first React app. We did **not** transplant Grok's heavier TanStack server/auth/database stack or its HTML Application / script-launcher packaging mode. Its Windows HTA / macOS shell / Linux `.run` outputs are different from native Tauri bundles and its phone output is an installable PWA rather than Android APK/iOS IPA. Native build generation continues through manually triggered CI workflows.
+
+## What we selectively merged from Claude's App Packager
+
+* PWA target, generated icons, manifest and worker
+* App ID, version, color and optional image fields
+* Standalone React `.jsx`/`.js` conversion to a Vite scaffold
+* CRA and generic build detection (with explicit limitations)
+* Manual GitHub Actions build recipes and visible YAML preview
+
+What we retained from AppForge 369: native Tauri desktop path, Python/PyInstaller, public GitHub import, ZIP scanning and safety checks, independent React/Vite component structure, and standard browser downloads. We **did not** retain the old Claude-only download hook or assume every Node/Next.js repository is a static native-ready app.
+
+## Validation and known limits (v0.3)
+
+* 13 local Node tests passed; the changed React/JS source parses with TypeScript's parser.
+* A production Vite build could not be executed here because npm registry DNS resolution failed (`EAI_AGAIN`).
+* Generated desktop, Android, and iOS workflows remain unverified on real platform runners. They may require debugging for specific OS/tooling versions.
+* Folder drag-and-drop depends on browser support for `webkitGetAsEntry`; use the folder picker when available. Browser-specific behavior still requires manual testing.
+* Preview uses `sandbox=""` and CSP; CSS text and markup may display, but JavaScript and remote dependencies do not run.
+* The preview must not be used as a security audit of imported source, and secret-file filtering is best-effort.
+
+## Release flow
+
+1. Import **trusted** source.
+2. Set app name, reverse-domain ID, semver, custom icon; choose requested platforms.
+3. Export kit ZIP, then unzip and review its sources, scripts and workflows.
+4. Push to a new GitHub repository (private recommended), run the generated workflow manually from **Actions**.
+5. Download native build artifacts after the jobs pass. Signing, notarization, mobile release distribution and one-click remote builds are future milestones.

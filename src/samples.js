@@ -1,0 +1,5 @@
+/** Tiny inert demo sources. They are never executed inside Drop Zone. */
+export const SAMPLES = [
+  {id:'note', title:'Neon Note', desc:'Static HTML', filename:'neon-note.html', content:`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Neon Note</title><style>body{background:#111526;color:#e9fbff;font:16px system-ui;padding:40px}textarea{width:100%;min-height:130px;background:#202943;color:white;padding:14px;box-sizing:border-box;border:1px solid #596b8c;border-radius:12px}button{background:#9be8d0;border:0;padding:12px 20px;border-radius:8px;margin-top:12px}</style></head><body><h1>Neon Note</h1><p>Test this page as a desktop app or PWA.</p><textarea placeholder="Your note"></textarea><p><button onclick="alert('Hello from your packaged app!')">Say hello</button></p></body></html>`},
+  {id:'hello-python',title:'Hello Python',desc:'Desktop script',filename:'hello.py',content:'print("Hello from The Drop Zone!")\n'},
+];
