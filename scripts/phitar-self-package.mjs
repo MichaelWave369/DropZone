@@ -110,7 +110,7 @@ if (inspected.kind !== 'static' || inspected.entry !== 'index.html') {
   throw new Error('The standalone PhiTar dist did not inspect as a static project.');
 }
 const kit = await buildKit(inspected, 'PhiTar', ['windows','linux','macos'], ()=>{}, {
-  version:'0.6.0',
+  version:'0.7.0',
   appId:'com.phi369.phitar',
   color:'#101a21',
 });
