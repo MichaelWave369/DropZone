@@ -7,7 +7,8 @@
  */
 import { isTauri } from '@tauri-apps/api/core';
 import { open, save } from '@tauri-apps/plugin-dialog';
-import { mkdir, readFile, stat, writeFile } from '@tauri-apps/plugin-fs';
+import { mkdir, readDir, readFile, lstat, stat, writeFile } from '@tauri-apps/plugin-fs';
+import {planNativeFolder} from './phitar-folder-plan.js';
 import { safeArchivePath, ARCHIVE_FILE_LIMIT, ARCHIVE_INPUT_LIMIT, ARCHIVE_EXPANDED_LIMIT } from './phitar.js';
 
 export function hasNativeArchiveDialog() {
@@ -31,6 +32,46 @@ export function nativeJoin(root, ...segments) {
 
 function nativeBaseName(path) {
   return String(path).split(/[\\/]/).at(-1);
+}
+
+/**
+ * Select a folder for compression using a native system dialog.
+ * Preflights the complete tree before reading any bytes. No symlinks.
+ * A selected directory is added to the temporary recursive dialog scope.
+ */
+export async function pickNativeFolderFiles() {
+  if (!hasNativeArchiveDialog()) throw new Error('Native folder selection requires desktop PhiTar.');
+  const selected = await open({
+    title:'Choose a folder to compress in PhiTar',
+    directory:true,recursive:true,multiple:false,
+  });
+  if (!selected) return null;
+  if (typeof selected !== 'string') throw new Error('Select a single directory.');
+  const cleanRoot = selected.replace(/[\\/]+$/,'') || selected;
+  const label = nativeBaseName(cleanRoot);
+  const plan = await planNativeFolder(selected,{
+    readDir, lstat, join:nativeJoin, label,
+  });
+  let readTotal = 0;
+  const items = [];
+  for (const entry of plan.entries) {
+    // Defend against file type/size changes between preflight and reading.
+    const info = await lstat(entry.absolutePath);
+    if (!info.isFile || info.isSymlink || info.size !== entry.size)
+      throw new Error('Selected folder changed while reading. Choose the folder again.');
+    const data = await readFile(entry.absolutePath);
+    if (data.length !== entry.size)
+      throw new Error('File changed during the import. No folder data was staged.');
+    readTotal += data.length;
+    if (readTotal > ARCHIVE_INPUT_LIMIT)
+      throw new Error('Folder read exceeded the 75 MiB limit.');
+    const filename = entry.path.split('/').at(-1);
+    items.push({
+      path:entry.path,
+      file:new File([data],filename,{type:'application/octet-stream'}),
+    });
+  }
+  return {entries:items,filename:plan.label,fileCount:items.length,totalBytes:readTotal};
 }
 
 export async function pickNativeArchive() {
