@@ -1,8 +1,16 @@
 # The Drop Zone
 
-**Source in. Build kit out.** A browser-first React/Vite app that turns **trusted** source projects into cross-platform build recipes and project wrappers. Formerly the AppForge 369 prototype, now merged with selected ideas from Claude’s App Packager (provided separately). Now incorporates selected ideas from a user-supplied Grok Forgepack workspace, while retaining our AppForge/Claude architecture. MIT licensed.
+**Source in. Build kit out. Archive in. PhiTar out.** A browser-first React/Vite app that turns **trusted** source projects into cross-platform build recipes and project wrappers. Formerly the AppForge 369 prototype, now merged with selected ideas from Claude’s App Packager (provided separately). Now incorporates selected ideas from a user-supplied Grok Forgepack workspace, while retaining our AppForge/Claude architecture. MIT licensed.
 
 **Status:** v0.3 tri-AI merged prototype. This is **not a cloud compilation service**. Clicking **EXPORT BUILD KIT** downloads a ZIP containing your source, a selected-platform project wrapper, and GitHub Actions workflows. Finished native installers only appear when the workflows actually compile successfully on GitHub runners or a suitable local machine. The generated workflows remain best-effort; platform build results must be verified individually. A first native Windows smoke workflow is available for testing.
+
+## PhiTar archive workshop
+
+**PhiTar v0.1** is a browser-local archive station embedded in the live Drop Zone page (navigation: **PhiTar archives**). It is separate from native app packaging. It creates and opens **.zip**, **.tar** and **.tar.gz/.tgz** archives from local files and folder selections; ZIP offers configurable DEFLATE levels. Opened archives are checked for path traversal, unsafe device names, duplicate names, TAR header corruption, unsupported TAR links and expanded-size limits. Compatible browsers can extract into a **new subfolder** selected with the File System Access API, and any browser can repack validated contents into a ZIP download.
+
+**Boundaries:** 1000 files, 75 MB input, 150 MB expanded output; file data is handled in memory. TAR v1 creates/reads POSIX USTAR with portable ASCII names, not PAX/GNU extended headers. ZIP supports Unicode filenames. No encryption, archive splitting, 7z or RAR support yet. RAR compression is proprietary and not a claim made by this project. Treat imported archives as untrusted data; no source code is executed during archive inspection.
+
+See [PhiTar engineering notes](docs/PHITAR.md). Tests run with `npm test`.
 
 ## Local development
 
