@@ -123,15 +123,18 @@ if(conf.productName !== 'PhiTar' || conf.identifier !== 'com.phi369.phitar' || !
 }
 // PhiTar-only post-processing. The generic Drop Zone exporter MUST retain
 // its minimal, plugin-free privileges for arbitrary imported projects.
+const NL = String.fromCharCode(10);
 const cargo = await archive.file('src-tauri/Cargo.toml').async('string');
 if (!cargo.includes('[dependencies]')) throw new Error('Missing Rust dependencies header.');
 archive.file('src-tauri/Cargo.toml',
-  cargo + '\\ntauri-plugin-dialog = "2"\\ntauri-plugin-fs = "2"\\n'.replaceAll('\\\\n','\\n'));
+  cargo + NL + 'tauri-plugin-dialog = "2"' + NL + 'tauri-plugin-fs = "2"' + NL);
 const rust = await archive.file('src-tauri/src/lib.rs').async('string');
 if (!rust.includes('tauri::Builder::default()')) throw new Error('Unexpected generated Rust builder.');
 archive.file('src-tauri/src/lib.rs', rust.replace(
   'tauri::Builder::default()',
-  'tauri::Builder::default()\\n      .plugin(tauri_plugin_dialog::init())\\n      .plugin(tauri_plugin_fs::init())'.replaceAll('\\\\n','\\n')
+  ['tauri::Builder::default()',
+    '      .plugin(tauri_plugin_dialog::init())',
+    '      .plugin(tauri_plugin_fs::init())'].join(NL)
 ));
 const caps = JSON.parse(await archive.file('src-tauri/capabilities/default.json').async('string'));
 caps.permissions = [
@@ -154,7 +157,7 @@ archive.file('PHITAR_NATIVE_SCOPE.md', [
   'that directory only. The app creates a new phitar-extracted-* subfolder.',
   'No wildcard home-drive scope, shell commands or background transfers are enabled.',
   'Revoking permissions requires ending the app session. Test on each OS.',
-].join('\\n').replaceAll('\\\\n','\\n'));
+].join(NL));
 rmSync(OUTPUT,{recursive:true,force:true});
 mkdirSync(OUTPUT,{recursive:true});
 mkdirSync(BUNDLE,{recursive:true});
