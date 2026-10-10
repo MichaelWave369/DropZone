@@ -1,0 +1,45 @@
+name: Drop Zone GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore tri-AI starter when ZIP is supplied
+        run: |
+          if [ -f The-Drop-Zone-v0.3-tri-ai-starter.zip ]; then
+            unzip -o -q The-Drop-Zone-v0.3-tri-ai-starter.zip -d .
+          fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build or stage web preview
+        run: |
+          if [ -f package.json ]; then
+            if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
+            npm test --if-present
+            npm run build
+          else
+            mkdir -p dist
+            cp index.html dist/
+          fi
+          touch dist/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: deployment
+        uses: actions/deploy-pages@v4
