@@ -148,6 +148,9 @@ caps.permissions = [
 ];
 // Crucially no fs:scope-* permissions. The native dialog grants the selected
 // file or folder to the runtime filesystem scope only for this session.
+if (caps.permissions.some(x=>x.startsWith('fs:scope')||x==='fs:default')) {
+  throw new Error('PhiTar must not ship a blanket filesystem scope.');
+}
 archive.file('src-tauri/capabilities/default.json',JSON.stringify(caps,null,2));
 archive.file('PHITAR_NATIVE_SCOPE.md', [
   '# PhiTar native filesystem access',
