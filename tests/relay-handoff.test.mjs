@@ -27,7 +27,7 @@ test('Relay digest comes from real file bytes and matches SHA-256 known vector',
 test('Handoff note includes digest, recipient, explicit manual-upload boundary', async () => {
   const receipt=await prepareRelayHandoff(new File(['hello'],'demo.tar.gz'));
   const note=relayHandoffNote(receipt);
-  assert.match(note,/Private / owner/);
+  assert.match(note,/Private \/ owner/);
   assert.match(note,/demo\.tar\.gz/);
   assert.match(note,/SHA-256: [0-9a-f]{64}/);
   assert.match(note,/manually through Parallax Relay/);
