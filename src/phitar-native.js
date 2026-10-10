@@ -7,8 +7,9 @@
  */
 import { isTauri } from '@tauri-apps/api/core';
 import { open, save } from '@tauri-apps/plugin-dialog';
-import { mkdir, readDir, readFile, lstat, stat, writeFile } from '@tauri-apps/plugin-fs';
-import {planNativeFolder} from './phitar-folder-plan.js';
+import { mkdir, readDir, readFile, lstat, stat, writeFile, remove, open as fsOpen } from '@tauri-apps/plugin-fs';
+import {planNativeFolder,NATIVE_STREAM_TAR_MAX_BYTES} from './phitar-folder-plan.js';
+import {writeStreamingTar,streamingTarSize} from './phitar-tar-stream.js';
 import { safeArchivePath, ARCHIVE_FILE_LIMIT, ARCHIVE_INPUT_LIMIT, ARCHIVE_EXPANDED_LIMIT } from './phitar.js';
 
 export function hasNativeArchiveDialog() {
@@ -136,4 +137,51 @@ export async function extractNativeArchive(entries) {
     await writeFile(nativeJoin(folder,path),data,{createNew:true});
   }
   return {saved:true,count:files.length,directory:folder};
+}
+
+
+/**
+ * Large native USTAR creation. Does not materialize the input folder or archive
+ * in JS memory. Only the selected paths are scoped for this app session.
+ *
+ * This feature is intentionally TAR-only; ZIP and TGZ still use the proven
+ * bounded in-memory archive engine until dedicated streaming writers exist.
+ */
+export async function makeLargeNativeTar({progress}={}) {
+  if(!hasNativeArchiveDialog()) throw new Error('Streaming TAR requires the PhiTar desktop app.');
+  const selected=await open({
+    title:'Select source folder for large TAR (up to 2 GiB)',
+    directory:true,recursive:true,multiple:false,
+  });
+  if(!selected)return {saved:false,reason:'source-canceled'};
+  if(typeof selected!=='string')throw new Error('Choose one source folder.');
+  const cleanRoot=selected.replace(/[\\/]+$/,'') || selected;
+  const label=nativeBaseName(cleanRoot);
+  const plan=await planNativeFolder(selected,{
+    readDir,lstat,join:nativeJoin,label,maxBytes:NATIVE_STREAM_TAR_MAX_BYTES,
+  });
+  const expected=streamingTarSize(plan);
+  const output=await save({
+    title:'Save new streaming TAR archive (will not overwrite an existing file)',
+    defaultPath:label+'-stream.tar',
+    filters:[{name:'Uncompressed TAR',extensions:['tar']}],
+  });
+  if(!output)return {saved:false,reason:'save-canceled'};
+  if(typeof output!=='string'||!output.toLowerCase().endsWith('.tar'))
+    throw new Error('Choose a .tar output file.');
+  // Keep the destination outside the source folder to avoid mutating the
+  // selected tree as the stream is being read.
+  const normalize=p=>p.replaceAll('\\','/').replace(/\/+$/,'').toLowerCase();
+  const sourceRoot=normalize(cleanRoot),destination=normalize(output);
+  if(destination===sourceRoot||destination.startsWith(sourceRoot+'/'))
+    throw new Error('Save the large TAR outside the source folder.');
+  if(plan.entries.some(entry=>normalize(entry.absolutePath)===destination))
+    throw new Error('Output path is the same as a source file.');
+  const result=await writeStreamingTar(plan,{
+    lstat,
+    openRead:filename=>fsOpen(filename,{read:true}),
+    openNew:()=>fsOpen(output,{write:true,createNew:true}),
+    removeIncomplete:()=>remove(output),
+  },{progress});
+  return {...result,saved:true,filename:nativeBaseName(output),expectedBytes:expected};
 }
