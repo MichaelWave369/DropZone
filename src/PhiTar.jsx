@@ -304,7 +304,7 @@ export default function PhiTar() {
             <FolderOpen size={17}/>{streaming?'Streaming large TAR…':'STREAM LARGE FOLDER TO TAR'}
           </button>
           {streamProgress&&<small role="status">{streamProgress}</small>}
-          <small>No SHA-256 receipt is generated for large TAR files yet. The output is not compressed, encrypted, signed or automatically uploaded.</small>
+          <small>No SHA-256 receipt yet. Large TAR output cannot yet be reopened or extracted within PhiTar's 75 MiB inspection limit. Use a system TAR tool for that. No compression, encryption, signing or upload.</small>
         </div>
         <p className="phitar-fine">ZIP supports Unicode paths. TAR uses POSIX USTAR ASCII path limits. Maximum 1000 files / 75 MB input.</p>
         {createdReceipt&&<div className="phitar-receipt" aria-label="Last created archive SHA-256 receipt">
