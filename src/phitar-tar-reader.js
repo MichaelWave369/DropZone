@@ -66,7 +66,9 @@ export async function inspectStreamingTar(source){
         throw new Error('Missing complete TAR end marker.');
       if(!entries.length)throw new Error('TAR contains no regular files.');
       // Do not load the trailing padding. POSIX readers allow blocks of zeros.
-      return {entries,archiveBytes:source.size,dataBytes};
+      const plan={entries,archiveBytes:source.size,dataBytes};
+      checkedPlan(plan);
+      return plan;
     }
     const {path,size,isDirectory}=verifyHeader(h);
     const key=path.toLowerCase();
