@@ -29,7 +29,7 @@ export async function prepareRelayHandoff(file, options = {}) {
     sha256,
     project: normalizeHandoffLabel(options.project, 'DropZone'),
     version: normalizeHandoffLabel(options.version, 'unspecified', 64),
-    recipient: normalizeHandoffLabel(options.recipient, 'Resh', 100),
+    recipient: normalizeHandoffLabel(options.recipient, 'Private / owner', 100),
     relay: RELAY_URL,
     createdAt: new Date().toISOString(),
   };
