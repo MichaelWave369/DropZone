@@ -2,7 +2,7 @@
 
 **Source in. Build kit out.** A browser-first React/Vite app that turns **trusted** source projects into cross-platform build recipes and project wrappers. Formerly the AppForge 369 prototype, now merged with selected ideas from Claude’s App Packager (provided separately). Now incorporates selected ideas from a user-supplied Grok Forgepack workspace, while retaining our AppForge/Claude architecture. MIT licensed.
 
-**Status:** v0.3 tri-AI merged prototype. This is **not a cloud compilation service**. Clicking **EXPORT BUILD KIT** downloads a ZIP containing your source, a selected-platform project wrapper, and GitHub Actions workflows. Finished native installers only appear when the workflows actually compile successfully on GitHub runners or a suitable local machine. The generated workflows are best-effort and have not yet been tested on real platform runners.
+**Status:** v0.3 tri-AI merged prototype. This is **not a cloud compilation service**. Clicking **EXPORT BUILD KIT** downloads a ZIP containing your source, a selected-platform project wrapper, and GitHub Actions workflows. Finished native installers only appear when the workflows actually compile successfully on GitHub runners or a suitable local machine. The generated workflows remain best-effort; platform build results must be verified individually. A first native Windows smoke workflow is available for testing.
 
 ## Local development
 
@@ -15,7 +15,11 @@ npm test
 npm run build
 ```
 
-The GitHub Pages workflow in `.github/workflows/pages.yml` deploys the React interface from `main`. In the repository settings choose **Pages → GitHub Actions**. No production URL exists until the repository has been created and deployed.
+The GitHub Pages workflow in `.github/workflows/pages.yml` deploys the React interface from `main`. In the repository settings choose **Pages → GitHub Actions**. **Live React site:** https://michaelwave369.github.io/DropZone/ (the GitHub Pages build has passed).
+
+## Native installer reality check
+
+See [Windows installer smoke test](docs/NATIVE_SMOKE.md). This checks that a trusted example travels through the same Drop Zone generator used by the browser and reaches a real Windows/Tauri build runner. A green Pages deployment alone does not demonstrate native packaging; the native smoke workflow must compile and upload an installer artifact first.
 
 ## What can be imported
 
