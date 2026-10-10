@@ -203,7 +203,7 @@ export default function PhiTar() {
   const total = files.reduce((sum,f)=>sum+f.file.size,0);
   return <section className="phitar-section" id="phitar" aria-label="PhiTar archive lab">
     <div className="phitar-header">
-      <div><span className="mini-label"><Archive size={15}/> PHITAR / ARCHIVE LAB • v0.1</span>
+      <div><span className="mini-label"><Archive size={15}/> PHITAR / ARCHIVE LAB • v0.3</span>
         <h2>Compress with a little <span>Phi.</span></h2>
         <p>Create and open genuine ZIP, TAR and TAR.GZ archives. No installers, backend, or code execution involved.</p>
       </div>
