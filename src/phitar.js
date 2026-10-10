@@ -28,9 +28,13 @@ export function collectArchiveFiles(files) {
   if (input.length > ARCHIVE_FILE_LIMIT) throw new Error('Too many files (maximum 1000).');
   let total = 0;
   const seen = new Set();
-  return input.map(file => {
+  return input.map(item => {
+    // Native desktop directory preflight produces { path, file } descriptors.
+    // Browser file inputs still produce File objects with webkitRelativePath.
+    const descriptor = item && !(item instanceof Blob) && item.file instanceof Blob;
+    const file = descriptor ? item.file : item;
     if (!(file instanceof Blob)) throw new Error('Expected browser file objects.');
-    const path = safeArchivePath(file.webkitRelativePath || file.name);
+    const path = safeArchivePath(descriptor ? item.path : (file.webkitRelativePath || file.name));
     if (seen.has(path.toLowerCase())) throw new Error('Duplicate filename: ' + path);
     seen.add(path.toLowerCase());
     total += file.size;
