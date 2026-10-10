@@ -14,9 +14,13 @@ export function streamingTarSize(plan) {
   if (!Array.isArray(plan?.entries) || !plan.entries.length || plan.entries.length > 1000)
     throw new Error('Streaming TAR requires between 1 and 1,000 files.');
   let total = END.length;
+  let totalSourceBytes = 0;
   for (const item of plan.entries) {
     if (!Number.isSafeInteger(item.size) || item.size < 0)
       throw new Error('Invalid preflighted file size.');
+    totalSourceBytes += item.size;
+    if (totalSourceBytes > NATIVE_STREAM_TAR_MAX_BYTES)
+      throw new Error('Streaming TAR source exceeds the 2 GiB limit.');
     // Checks USTAR path and file-size field before opening an output file.
     createTarHeader(item.path,item.size);
     total += BLOCK + Math.ceil(item.size/BLOCK)*BLOCK;
