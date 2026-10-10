@@ -1,4 +1,4 @@
-# PhiTar v0.4: Native desktop file handling
+# PhiTar native desktop file handling (v0.5)
 
 PhiTar v0.4 adds OS-native archive opening, saving and extraction in the self-packaged Windows, Linux and macOS Tauri application. The web app keeps existing browser file controls and downloads.
 
@@ -25,7 +25,7 @@ PhiTar v0.4 adds OS-native archive opening, saving and extraction in the self-pa
 
 ## What's still missing
 
-- Native recursive folder input for compression; the archive creator still uses the folder/file picker supplied by its WebView.
+- Native recursive folder compression is available in v0.5 through the dialog-scoped reader, with preflight checks and the existing 75 MiB total size limit.
 - Huge archive streaming, 7z/RAR support, encrypted archives, drag/drop from native file manager integration and native installer signing.
 - Automated GUI dialog tests on real operating systems. CI proves compilation and kit capability shape, not human interaction.
 
