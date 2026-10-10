@@ -41,7 +41,7 @@ export function collectArchiveFiles(files) {
 }
 
 function writeAscii(bytes, offset, length, value) {
-  if (!/^[\x20-\x7e]*$/.test(value) || value.length > length) throw new Error('TAR v1 requires ASCII filenames within USTAR limits.');
+  if (!/^[\x00-\x7e]*$/.test(value) || value.length > length) throw new Error('TAR v1 requires ASCII filenames within USTAR limits.');
   for (let i = 0; i < value.length; i++) bytes[offset + i] = value.charCodeAt(i);
 }
 function octal(bytes, offset, length, number) {
