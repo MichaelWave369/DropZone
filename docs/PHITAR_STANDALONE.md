@@ -29,6 +29,12 @@ npx tauri build
 
 The GitHub Actions workflow performs equivalent steps and uploads unsigned installer artifacts. GitHub Actions artifacts expire after seven days. An unsigned Windows installer may trigger SmartScreen; unsigned macOS applications may be blocked by Gatekeeper. The generated app must still be manually installed and exercised on each OS before any consumer release.
 
+## Native file dialogs (PhiTar v0.4)
+
+Desktop PhiTar is no longer limited to WebView file-picker behavior for opening, saving or extracting archives. It installs official Tauri 2 dialog and filesystem plugins into PhiTar's **generated** Tauri workspace only. The dialogs establish temporary file/directory scopes without granting the app unrestricted access to the home directory, drive or network shares. Native extraction validates paths, creates a new destination subfolder, and uses exclusive file creation. The browser version retains its original fallbacks.
+
+Manual smoke checks: open ZIP, TAR, TAR.GZ on each OS; save an archive using the system save dialog; extract into a chosen directory, confirm nested paths and no overwrite; cancel each dialog; check corrupt archives and malicious traversal names; restart app to confirm prior permissions are not persisted. **CI proving that installers compile does not prove all native dialogs work in a GUI session.**
+
 ## PhiTar v0.3 integrity receipts
 
 PhiTar generates a **SHA-256 integrity receipt** after creating an archive. This receipt contains the exact archive filename, byte size, hash, local timestamp, schema version, and an explicit integrity-only statement. A downloadable `.sha256.json` receipt and copyable checksum are available in the Archive Lab.
