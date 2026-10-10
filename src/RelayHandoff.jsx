@@ -16,7 +16,7 @@ function saveBlob(blob, filename) {
 export default function RelayHandoff({stagedArtifact}) {
   const [manualFile, setManualFile] = useState(null);
   const [project, setProject] = useState('DropZone');
-  const [recipient, setRecipient] = useState('Resh');
+  const [recipient, setRecipient] = useState('Private / owner');
   const [version, setVersion] = useState('1.0.0');
   const [receipt, setReceipt] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -71,13 +71,13 @@ export default function RelayHandoff({stagedArtifact}) {
         <div className="relay-fields">
           <label>PROJECT<input value={project} onChange={e=>{setProject(e.target.value);clearReceipt();}} maxLength={120}/></label>
           <label>VERSION<input value={version} onChange={e=>{setVersion(e.target.value);clearReceipt();}} maxLength={64}/></label>
-          <label>RECIPIENT LABEL<input value={recipient} onChange={e=>{setRecipient(e.target.value);clearReceipt();}} maxLength={100}/></label>
+          <label>HANDOFF LABEL (NOT A PERMISSION)<input value={recipient} onChange={e=>{setRecipient(e.target.value);clearReceipt();}} maxLength={100}/></label>
         </div>
         <button className="relay-primary" disabled={!file||busy||file.size>HANDOFF_LIMIT_BYTES} onClick={prepare}>
           {busy?<LoaderCircle size={16} className="spin"/>:<Fingerprint size={16}/>}
           {busy?'Hashing file…':'PREPARE SHA-256 RECEIPT'}
         </button>
-        <p className="relay-muted">Maximum 75 MiB per file for local hashing. Recipient is a handoff label, not an access-control setting.</p>
+        <p className="relay-muted">Maximum 75 MiB per file for local hashing. Handoff labels do not grant or restrict access. Secure Relay access before transferring.</p>
       </div>
       <div className="relay-panel">
         <h3><ShieldCheck size={18}/> 02 / Transfer through Relay</h3>
@@ -89,12 +89,12 @@ export default function RelayHandoff({stagedArtifact}) {
             <button onClick={saveReceipt}><ArrowDownToLine size={16}/> Save receipt JSON</button>
           </div>
           <a className="relay-open" href={RELAY_URL} target="_blank" rel="noopener noreferrer">OPEN PARALLAX RELAY <ArrowUpRight size={16}/></a>
-          <p className="relay-muted">In Relay, sign in, select the ZIP you downloaded, and fill Project, Version, Recipient and Note. Paste the handoff note. Your file is sent only from Relay after you choose to upload it.</p>
+          <p className="relay-muted">In Relay, sign in as the owner, select the ZIP you downloaded, and fill Project, Version and Note. Paste the handoff note. Upload happens only after you approve it inside Relay.</p>
         </> : <>
           <div className="relay-await"><Fingerprint size={30}/><strong>Awaiting verified artifact</strong><span>The recipient can compare this digest with the file received in Relay.</span></div>
           <a className="relay-open relay-open-muted" href={RELAY_URL} target="_blank" rel="noopener noreferrer">OPEN RELAY MANUALLY <ArrowUpRight size={16}/></a>
         </>}
-        <p className="relay-warning"><ShieldCheck size={15}/> Separate authenticated systems. No credentials, cookies or file bytes are passed across sites by Drop Zone. Current Relay collaborator access is not recipient-scoped; only use it with trusted people.</p>
+        <p className="relay-warning"><ShieldCheck size={15}/> Separate authenticated systems. No credentials, cookies or file bytes are passed across sites by Drop Zone. Before transferring: revoke former invitations and rotate the Relay session secret in Netlify. Labels are not recipient permissions.</p>
       </div>
     </div>
     {feedback&&<div role="status" className="relay-feedback"><CheckCircle2 size={16}/>{feedback}</div>}
