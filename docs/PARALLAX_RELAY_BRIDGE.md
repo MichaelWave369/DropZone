@@ -10,10 +10,10 @@
 
 1. Generate a build-kit ZIP from your trusted source in Drop Zone, or make a ZIP/TAR.GZ in PhiTar.
 2. Scroll to **Relay handoff**. The most recently exported Drop Zone ZIP is already staged, or select a local file manually.
-3. Set project/version/recipient label and click **Prepare SHA-256 receipt**. The actual file bytes are hashed locally; the resulting receipt is marked `PREPARED_LOCAL_ONLY`.
+3. Set project/version/private handoff label and click **Prepare SHA-256 receipt**. The actual file bytes are hashed locally; the resulting receipt is marked `PREPARED_LOCAL_ONLY`.
 4. Copy the handoff note or save the JSON receipt. **Open Parallax Relay** takes you to its exact HTTPS origin with no credentials, filenames or file content in the URL.
 5. Sign into Relay on Netlify. Select the previously downloaded ZIP, set Project, Version, Recipient and paste the handoff note, then explicitly upload. This is the only step where file bytes reach a network service.
-6. Resh or another trusted collaborator receives and downloads the file in Relay. Compare SHA-256 before using the files. Drag received ZIP/TAR into PhiTar, or a compatible source ZIP into Drop Zone.
+6. The account owner can download the file from Relay for their own devices. Compare SHA-256 before using the files. Drag received ZIP/TAR into PhiTar, or a compatible source ZIP into Drop Zone.
 
 **Important:** This v0.4 step is NOT an automatic cross-site upload, a delivery confirmation, or a verified live Relay API integration. We do not import cookies, prompt for access codes, embed Relay in an iframe, or expose Netlify credentials in GitHub Pages.
 
@@ -38,3 +38,8 @@ Until that functionality exists and has evidence from a deployed Netlify build, 
 ## Audit and tests
 
 `src/relay-handoff.js` performs local SHA-256 and builds a `dropzone.parallax-handoff.v1` JSON record. Tests verify the hash of `abc`, site origin and receipt state, size limits, and that no API access is required. Node tests + Vite production build run in `.github/workflows/verify.yml`. The Relay backend is **not** called during CI or document creation.
+## Owner-only access and revocation
+
+**This integration does not authorize anyone.** The handoff label is metadata and does not restrict Relay downloads. Before sending private artifacts, update the relay Netlify environment to revoke every stale invitation, rotate any shared access code, rotate `RELAY_SESSION_SECRET` (which invalidates existing signed sessions), and enable the optional `RELAY_OWNER_ONLY=true` server policy after the Relay access-control patch is deployed. Confirm an owner invitation is configured first, or the owner could be locked out. See the Relay repository's access-revocation guide.
+
+The GitHub repository and its GitHub Pages app are public; browser source code cannot be selectively hidden from individual viewers. Private files should never be committed to public GitHub or hosted there.

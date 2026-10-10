@@ -16,7 +16,7 @@ See [PhiTar engineering notes](docs/PHITAR.md). Tests run with `npm test`.
 
 A new **Relay handoff** section stages the most recently exported Drop Zone ZIP, or a user-selected archive, for manual transfer through **Parallax Relay 369**. It computes a **real SHA-256 digest** locally, provides a downloadable JSON receipt and copyable handoff note, and opens the existing Netlify Relay in a separate tab. Nothing is uploaded by Drop Zone.
 
-The recipient can download the file using Relay's authenticated interface and bring it back to Drop Zone or PhiTar. The current relay repository's `recipient` value is **not** enforced as a private access-control boundary; only send artifacts suitable for the trusted collaborator group.
+The owner can download files using Relay's authenticated interface and bring them back to Drop Zone or PhiTar. A handoff label is **not** an access-control boundary. Configure and verify the Relay site's invite/session revocation and owner-only policy before sharing private artifacts.
 
 **This is not one-click file transfer yet.** See [Parallax Relay bridge and security design](docs/PARALLAX_RELAY_BRIDGE.md) before enabling cross-origin uploads.
 
